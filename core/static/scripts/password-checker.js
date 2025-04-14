@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     { id: 'number', text: 'At least one number', regex: /[0-9]/ }
   ];
   
-  let html = '<div style="font-weight: bold; margin-bottom: 5px; color: #aaa;">Password must contain:</div>';
+  let html = '';
   html += '<ul style="list-style-type: none; padding-left: 0; margin: 0;">';
   
   requirements.forEach(req => {
