@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib import messages
-from .forms import UserRegistrationForm
-
-# Create your views here.
+from .forms import UserRegistrationForm, EmailOrUsernameAuthenticationForm
+from django.contrib.auth.decorators import login_required
+from .models import UserProfile
+from django.contrib.auth import get_user_model
 from django.shortcuts import render
 
 songs = [
@@ -53,25 +54,58 @@ def homepage(request):
     return render(request, 'core/index.html')
 
 def register(request):
+    if request.user.is_authenticated:
+        messages.info(request, 'You are already registered and logged in.')
+        return redirect('home')
+        
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request) # Automatically log in the user after registration
+            login(request, user)
             messages.success(request, 'Registration successful!')
             return redirect('home')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error[0]}")
     else:
         form = UserRegistrationForm()
+    
+    login_form = EmailOrUsernameAuthenticationForm(request)
+    
+    return render(request, 'core/register.html', {
+        'form': form,
+        'login_form': login_form
+    })
+
+def login_view(request):
+    if request.user.is_authenticated:
+        messages.info(request, 'You are already logged in.')
+        return redirect('home')
         
-    return render(request, 'core/register.html', {'form': form})
-
-def login(request):
-    return render(request, 'core/test.html',
-                  {"songs": songs})
-
-def profile(request):
-    return render(request, 'core/profile.html')
+    login_failed = False
+    
+    if request.method == 'POST':
+        form = EmailOrUsernameAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, 'Login successful!')
+            
+            next_url = request.GET.get('next', 'home')
+            return redirect(next_url)
+        else:
+            login_failed = True
+            registration_form = UserRegistrationForm()
+    else:
+        form = EmailOrUsernameAuthenticationForm(request)
+        registration_form = UserRegistrationForm()
+    
+    return render(request, 'core/register.html', {
+        'login_form': form,
+        'form': registration_form, 
+        'login_failed': login_failed  
+    })
+    
+    
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('register')
