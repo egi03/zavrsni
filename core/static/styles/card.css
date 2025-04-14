@@ -1,0 +1,273 @@
+.cards-containter{
+    display: flex;
+    flex-direction: row;
+}
+
+.card {
+    position: relative;
+    width: 52vw;
+    height: 69.2vw; 
+    background-color: rgba(70, 70, 70, 0.856);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 2.5vw;
+    gap: 2.5vw;
+    border-radius: 3.5vw; 
+    cursor: pointer;
+    color: #000000;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    margin: 1rem;
+    transition: transform 0.3s ease-out;
+    overflow: hidden;
+  }
+
+
+  .card-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+    z-index: -1;
+    transition: transform 0.4s ease-out, filter 0.4s ease-out;
+  }
+
+  
+  .card::after {
+    content: "";
+    z-index: -2;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(-45deg, #1cffa4 0%, #504b4ee6 100%);
+    transform: translate3d(0, 0, 0) scale(0.95);
+    filter: blur(8vw);
+  }
+  
+  .card-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .heading {
+    font-size: 5vw;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    text-shadow: 0.2vw 0.2vw 0.6vw rgba(0, 0, 0, 0.6);
+  }
+  
+  .card p:not(.heading) {
+    font-size: 3.6vw;
+    color: white;
+    margin: 1vw 0;
+    text-shadow: 0.2vw 0.2vw 0.6vw rgba(0, 0, 0, 0.6);
+  }
+  
+  .card p:last-child {
+    color: #1cffa4;
+  }
+  
+  .song-info {
+    position: absolute;
+    bottom: -47vw; 
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 4vw; 
+    box-sizing: border-box;
+    color: white;
+    transition: bottom 0.4s ease-out;
+    border-radius: 0 0 3.5vw 3.5vw;
+    z-index: 2;
+  }
+  
+  .song-title {
+    font-size: 4.2vw; 
+    font-weight: bold;
+    margin: 0 0 1vw 0;
+    color: #1cffa4;
+  }
+  
+  .artist,
+  .album,
+  .year,
+  .genre {
+    font-size: 3.2vw; 
+    margin: 0.6vw 0;
+    opacity: 0.9;
+  }
+  
+  .play-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 9.6vw; 
+    max-width: 48px; 
+    height: 9.6vw;
+    max-height: 48px;
+    background-color: #1cffa4;
+    border-radius: 50%;
+    position: absolute;
+    top: 4vw; 
+    right: 4vw;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 3;
+  }
+  
+  .play-button svg {
+    width: 4.2vw;
+    max-width: 21px; 
+    height: 4.2vw;
+    max-height: 21px;
+    fill: black;
+  }
+  
+  .card:hover::before {
+    transform: scale(1.05) rotate(-3deg);
+    filter: brightness(0.7) blur(0.4vw);
+  }
+  
+  .card:hover {
+    transform: translateY(-1vw);
+  }
+  
+  .card:hover .song-info {
+    bottom: 0;
+  }
+  
+  .card:hover .play-button {
+    opacity: 1;
+  }
+  
+  .card:hover .card-content {
+    opacity: 0;
+  }
+
+  .card:hover .card-image {
+    transform: scale(1.05) rotate(-3deg);
+    filter: brightness(0.7) blur(2px);
+  }
+  
+  @media (min-width: 768px) {
+    .card {
+      width: 350px; 
+      height: 434px; 
+      padding: 16px; 
+      gap: 16px;
+      border-radius: 20px;
+    }
+  
+    .card::after {
+      filter: blur(40px);
+    }
+  
+    .heading {
+      font-size: 26px; 
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    }
+  
+    .card p:not(.heading) {
+      font-size: 18px; 
+      margin: 5px 0;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    }
+  
+    .song-info {
+      bottom: -240px; 
+      padding: 20px; 
+      border-radius: 0 0 20px 20px;
+    }
+  
+    .song-title {
+      font-size: 21px; 
+      margin: 0 0 5px 0;
+    }
+  
+    .artist,
+    .album,
+    .year,
+    .genre {
+      font-size: 16px; 
+      margin: 3px 0;
+    }
+  
+    .play-button {
+      width: 48px; 
+      height: 48px;
+      top: 20px; 
+      right: 20px;
+    }
+  
+    .play-button svg {
+      width: 21px;
+      height: 21px;
+    }
+  
+    .card:hover::before {
+      filter: brightness(0.7) blur(2px);
+    }
+  
+    .card:hover {
+      transform: translateY(-5px);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .card {
+      width: 40vw; 
+      height: 53.2vw;
+      padding: 2vw; 
+      gap: 2vw;
+      border-radius: 2.5vw; 
+    }
+  
+    .card::after {
+      filter: blur(6vw);
+    }
+  
+    .heading {
+      font-size: 4vw; 
+    }
+  
+    .card p:not(.heading) {
+      font-size: 2.7vw; 
+      margin: 0.5vw 0;
+    }
+  
+    .song-info {
+      bottom: -36vw;
+      padding: 2.5vw; 
+      border-radius: 0 0 2.5vw 2.5vw;
+    }
+  
+    .song-title {
+      font-size: 3.3vw; 
+      margin: 0 0 0.5vw 0;
+    }
+  
+    .artist,
+    .album,
+    .year,
+    .genre {
+      font-size: 2.4vw; 
+      margin: 0.4vw 0;
+    }
+  
+    .play-button {
+      width: 7.2vw;
+      height: 7.2vw;
+      top: 2.5vw;
+      right: 2.5vw;
+    }
+  
+    .play-button svg {
+      width: 3.2vw; 
+      height: 3.2vw;
+    }
+  }

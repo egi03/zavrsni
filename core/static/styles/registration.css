@@ -1,0 +1,372 @@
+:root {
+  --form-height: 60vh;
+  --form-width: 70vw;
+  --overlay-width: 30vw;
+  --hard-green: #1ed760;
+  --light-blue: #96dbe2;
+  --padding: 4vw;
+}
+
+.registration-page .container {
+  width: var(--form-width);
+  height: var(--form-height);
+  border-radius: 2vw;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0 0 3vw rgba(30, 215, 96, 0.2);
+  position: relative;
+  animation: slide-in 0.5s ease forwards;
+}
+
+.registration-page {
+  background-color: #00000059;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* Overlay */
+.registration-page .overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 60;
+  background: linear-gradient(135deg, #1ed760, #2941ab);
+  border-radius: 1vw;
+  color: #fff;
+  clip: rect(0, var(--overlay-width), var(--form-height), 0);
+}
+
+.registration-page .open-sign-up {
+  animation: slideleft 1s linear forwards;
+}
+
+.registration-page .open-sign-in {
+  animation: slideright 1s linear forwards;
+}
+
+.registration-page .overlay .sign-in,
+.registration-page .overlay .sign-up {
+  width: calc(var(--overlay-width) - var(--padding) * 2);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--padding);
+  text-align: center;
+}
+
+.registration-page .overlay .sign-in {
+  float: left;
+}
+
+.registration-page .overlay .sign-up {
+  float: right;
+}
+
+.registration-page .overlay-text-left-animation {
+  animation: text-slide-in-left 1s linear;
+}
+
+.registration-page .overlay-text-left-animation-out {
+  animation: text-slide-out-left 1s linear;
+}
+
+.registration-page .overlay-text-right-animation {
+  animation: text-slide-in-right 1s linear;
+}
+
+.registration-page .overlay-text-right-animation-out {
+  animation: text-slide-out-right 1s linear;
+}
+
+.registration-page .overlay h1 {
+  font-size: 3rem;
+  margin-bottom: 1vh;
+  font-weight: 600;
+}
+
+.registration-page .overlay p {
+  font-size: 1rem;
+  margin-bottom: 3vh;
+  color: #f0f0f0;
+}
+
+/* Buttons */
+.registration-page .switch-button,
+.registration-page .control-button {
+  cursor: pointer;
+  width: 12vw;
+  height: 7vh;
+  font-size: 1.3vh;
+  text-transform: uppercase;
+  background: transparent;
+  border-radius: 2vw;
+  color: #fff;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+.registration-page .switch-button {
+  border: 2px solid #fff;
+}
+
+.registration-page .switch-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.registration-page .control-button {
+  border: none;
+  margin-top: 1.5vh;
+  color: #000;
+  font-weight: bold;
+}
+
+.registration-page .control-button:hover {
+  transform: scale(1.05);
+}
+
+.registration-page .switch-button:focus,
+.registration-page .control-button:focus {
+  outline: none;
+}
+
+.registration-page .control-button.up {
+  background-color: #1ed760;
+}
+
+.registration-page .control-button.in {
+  background-color: var(--light-blue);
+}
+
+/* Forms */
+.registration-page .form {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 1vw;
+  background-color: #000;
+}
+
+.registration-page .form .sign-in,
+.registration-page .form .sign-up {
+  position: absolute;
+  width: calc(var(--form-width) - var(--overlay-width) - var(--padding) * 2);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--padding);
+  text-align: center;
+}
+
+.registration-page .form .sign-in {
+  display: none;
+  left: 0;
+}
+
+.registration-page .form .sign-up {
+  right: 0;
+}
+
+.registration-page .form-right-slide-in {
+  animation: form-slide-in-right 1s ease;
+}
+
+.registration-page .form-right-slide-out {
+  animation: form-slide-out-right 1s ease;
+}
+
+.registration-page .form-left-slide-in {
+  animation: form-slide-in-left 1s ease;
+}
+
+.registration-page .form-left-slide-out {
+  animation: form-slide-out-left 1s ease;
+}
+
+.registration-page .form .sign-in h1 {
+  color: var(--light-blue);
+  font-size: 3rem;
+  margin: 0;
+}
+
+.registration-page .form .sign-up h1 {
+  color: var(--hard-green);
+  font-size: 3rem;
+  margin: 0;
+}
+
+.registration-page form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.registration-page input {
+  width: 20vw;
+  margin: 1vh 0;
+  padding: 1.3vh 1.5vw;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1vw;
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(0.4vh);
+  color: #fff;
+  font-size: 2vh;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 1.5px;
+}
+
+.registration-page input::placeholder {
+  color: #cac8c8;
+  letter-spacing: 1px;
+}
+
+.registration-page .forgot-password {
+  font-size: 1rem;
+  margin-top: 1vh;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom 0.2s ease;
+}
+
+.registration-page .forgot-password:hover {
+  border-bottom: 1px solid #fff;
+}
+
+/* Animations */
+@keyframes slideright {
+  0% { clip: rect(0, var(--overlay-width), var(--form-height), 0); }
+  30% { clip: rect(0, calc(var(--overlay-width) * 1.25), var(--form-height), 0); }
+  50% { clip: rect(0, calc(var(--form-width) / 2 + var(--overlay-width) * 1.25 / 2), var(--form-height), calc(var(--form-width) / 2 - var(--overlay-width) * 1.25 / 2)); }
+  80% { clip: rect(0, var(--form-width), var(--form-height), calc(var(--form-width) - var(--overlay-width) * 1.25)); }
+  100% { clip: rect(0, var(--form-width), var(--form-height), calc(var(--form-width) - var(--overlay-width))); }
+}
+
+@keyframes slideleft {
+  0% { clip: rect(0, var(--form-width), var(--form-height), calc(var(--form-width) - var(--overlay-width))); }
+  30% { clip: rect(0, var(--form-width), var(--form-height), calc(var(--form-width) - var(--overlay-width) * 1.25)); }
+  50% { clip: rect(0, calc(var(--form-width) / 2 + var(--overlay-width) * 1.25 / 2), var(--form-height), calc(var(--form-width) / 2 - var(--overlay-width) * 1.25 / 2)); }
+  70% { clip: rect(0, calc(var(--overlay-width) * 1.25), var(--form-height), 0); }
+  100% { clip: rect(0, var(--overlay-width), var(--form-height), 0); }
+}
+
+@keyframes text-slide-in-left {
+  0% { padding-left: 2vw; }
+  100% { padding-left: var(--padding); }
+}
+
+@keyframes text-slide-in-right {
+  0% { padding-right: 2vw; }
+  100% { padding-right: var(--padding); }
+}
+
+@keyframes text-slide-out-left {
+  0% { padding-left: var(--padding); }
+  100% { padding-left: 2vw; }
+}
+
+@keyframes text-slide-out-right {
+  0% { padding-right: var(--padding); }
+  100% { padding-right: 2vw; }
+}
+
+@keyframes form-slide-in-right {
+  0% { padding-right: 8vw; }
+  100% { padding-right: var(--padding); }
+}
+
+@keyframes form-slide-in-left {
+  0% { padding-left: 8vw; }
+  100% { padding-left: var(--padding); }
+}
+
+@keyframes form-slide-out-right {
+  0% { padding-right: var(--padding); }
+  100% { padding-right: 6vw; }
+}
+
+@keyframes form-slide-out-left {
+  0% { padding-left: var(--padding); }
+  100% { padding-left: 6vw; }
+}
+
+@keyframes slide-in {
+  0% { transform: translateY(2vh); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in {
+  0% { transform: translateY(2vh); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsivness */
+@media (max-width: 768px) {
+  :root {
+    --form-height: 80vh;
+    --form-width: 90vw;
+    --overlay-width: 50vw;
+    --padding: 5vw;
+  }
+
+  .registration-page .container {
+    width: var(--form-width);
+    height: var(--form-height);
+    border-radius: 4vw;
+  }
+
+  .registration-page .overlay h1 {
+    font-size: 2rem;
+    margin-bottom: 2vh;
+  }
+
+  .registration-page .overlay p {
+    font-size: 0.9rem;
+    margin-bottom: 2vh;
+  }
+
+  .registration-page .form .sign-in h1,
+  .registration-page .form .sign-up h1 {
+    font-size: 2rem;
+  }
+
+  .registration-page .switch-button,
+  .registration-page .control-button {
+    width: 30vw;
+    height: 8vh;
+    font-size: 1.5vh;
+    border-radius: 3vw;
+  }
+
+  .registration-page input {
+    width: 40vw;
+    padding: 1.5vh 2vw;
+    font-size: 1.8vh;
+    border-radius: 2vw;
+  }
+
+  .registration-page .forgot-password {
+    font-size: 0.9rem;
+    margin-top: 2vh;
+  }
+
+  .registration-page .form .sign-in,
+  .registration-page .form .sign-up {
+    width: calc(var(--form-width) - var(--overlay-width) - var(--padding) * 2);
+  }
+
+  .registration-page .overlay .sign-in,
+  .registration-page .overlay .sign-up {
+    width: calc(var(--overlay-width) - var(--padding) * 2);
+  }
+}

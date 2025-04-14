@@ -1,0 +1,64 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Moj Profil{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <div class="container">
+    <div class="profile-header">
+        <div class="profile-left">
+          <div class="profile-picture">
+            {% if user.profile_picture %}
+              <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+            {% else %}
+              <div class="placeholder-picture">
+                <span>{{ user.username|slice:":1"|upper }}</span>
+              </div>
+            {% endif %}
+            <label for="profile-picture-upload" class="upload-button">Promijeni sliku</label>
+            <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
+          </div>
+          <div class="profile-info">
+            <h1>{{ user.username }} username</h1>
+            <p>{{ user.email }} mail</p>
+          </div>
+        </div>
+        <button class="edit-button">Uredi profil</button>
+      </div>
+
+
+
+    <div class="profile-details">
+      <h2>Informacije o profilu</h2>
+      <form id="profile-form" class="profile-form">
+        <div class="form-group">
+          <label for="username">Korisničko ime</label>
+          <input type="text" id="username" value="{{ user.username }}" readonly>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" value="{{ user.email }}" readonly>
+        </div>
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea id="bio" readonly>{{ user.bio|default_if_none:"" }}</textarea>
+        </div>
+        <button type="submit" class="save-button">Spremi promjene</button>
+      </form>
+    </div>
+
+    <div class="account-actions">
+      <h2>Postavke računa</h2>
+      <button class="action-button change-password">Promijeni zaporku</button>
+      <button class="action-button logout">Odjavi se</button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'scripts/profile.js' %}"></script>
+{% endblock %}

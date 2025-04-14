@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Moj Profil{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/card.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cards-containter">
+{% for song in songs %}
+    <div class="card">
+        <img src="{{ song.photo }}" alt="Album Cover" class="card-image">
+        <div class="play-button">
+        <svg viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+        </div>
+        <div class="card-content">
+        <p class="heading">{{ song.title }}</p>
+        <p>Performed by</p>
+        <p>{{ song.artist }}</p>
+        </div>
+        <div class="song-info">
+        <p class="heading">{{ song.title }}</p>
+        <p class="artist">by <strong>{{ song.artist }}</strong></p>
+        <p class="album">from <strong>{{ song.album }}</strong></p>
+        <p class="year">in <strong>{{ song.year }}</strong></p>
+        <p class="genre">Rap, Hip Hop</p>
+        </div>
+  </div>
+{% endfor %}
+</div>
+<script src="{% static 'scripts/profile.js' %}"></script>
+{% endblock %}

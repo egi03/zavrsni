@@ -1,0 +1,68 @@
+.scroll-icon,
+.scroll-icon:before {
+  position: absolute;
+  left: 50%;
+}
+
+.scroll-icon {
+  width: 36px;
+  height: 60px;
+  margin-left: -18px; /* Center horizontally */
+  top: 90%; /* Position below the .content section */
+  border: 2px solid #fff;
+  border-radius: 6px;
+  transition: all 0.5s ease;
+  z-index: 10; /* Ensure it's above other elements */
+}
+
+.scroll-icon:before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  margin-left: -3px;
+  top: 8px;
+  border-radius: 3px;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+  animation-name: scroll;
+}
+
+/* Animation for the scroll icon */
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+/* Media Queries for Larger Screens */
+@media only screen and (min-width: 768px) {
+  .scroll-icon {
+    border: 1px solid #fff;
+    border-radius: 18px;
+  }
+
+  .scroll-icon:before {
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 2px;
+    animation-name: scroll2;
+  }
+}
+
+@keyframes scroll2 {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
