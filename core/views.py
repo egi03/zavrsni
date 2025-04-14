@@ -1,4 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib import messages
+from .forms import UserRegistrationForm
 
 # Create your views here.
 from django.shortcuts import render
@@ -50,11 +53,25 @@ def homepage(request):
     return render(request, 'core/index.html')
 
 def register(request):
-    return render(request, 'core/test.html',
-                  {"songs": songs})
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request) # Automatically log in the user after registration
+            messages.success(request, 'Registration successful!')
+            return redirect('home')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error[0]}")
+    else:
+        form = UserRegistrationForm()
+        
+    return render(request, 'core/register.html', {'form': form})
 
 def login(request):
-    return render(request, 'core/registration.html')
+    return render(request, 'core/test.html',
+                  {"songs": songs})
 
 def profile(request):
     return render(request, 'core/profile.html')
