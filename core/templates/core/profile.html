@@ -1,62 +1,137 @@
 {% extends "core/base.html" %}
 {% load static %}
-
 {% block title %}Moj Profil{% endblock %}
-
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'styles/profile.css' %}">
+  <style>
+    .save-picture-button {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    /* Added style for the permanent-remove-btn */
+    .permanent-remove-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    
+    .messages {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      max-width: 350px;
+    }
+    
+    .message {
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s, fadeOut 0.5s 4.5s forwards;
+    }
+    
+    .message.success {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .message.error {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+  </style>
 {% endblock %}
-
 {% block content %}
 <div class="profile-page">
   <div class="container">
-    <div class="profile-header">
-        <div class="profile-left">
-          <div class="profile-picture">
-            {% if user.userprofile.profile_picture %}
-              <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture">
-            {% else %}
-              <div class="placeholder-picture">
-                <span>{{ user.username|slice:":1"|upper }}</span>
+      <div class="profile-header">
+          <div class="profile-left">
+            <form method="post" enctype="multipart/form-data" id="profile-picture-form">
+              {% csrf_token %}
+              <div class="profile-picture">
+                {% if user.userprofile.profile_picture %}
+                  <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture">
+                {% else %}
+                  <div class="placeholder-picture">
+                    <span>{{ user.username|slice:":1"|upper }}</span>
+                  </div>
+                {% endif %}
+                <label for="profile-picture-upload" class="upload-button">Promijeni sliku</label>
+                <input type="file" id="profile-picture-upload" name="profile_picture" accept="image/*" style="display: none;">
+                <input type="hidden" id="profile-picture-data" name="profile_picture_data">
               </div>
-            {% endif %}
-            <label for="profile-picture-upload" class="upload-button">Promijeni sliku</label>
-            <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
+              <button type="submit" class="save-picture-button" id="save-picture-button">Spremi promjene</button>
+            </form>
+            <div class="profile-info">
+              <h1>{{ user.username }}</h1>
+              <p>{{ user.email }}</p>
+            </div>
           </div>
-          <div class="profile-info">
-            <h1>{{ user.username }}</h1>
-            <p>{{ user.email }}</p>
-          </div>
+          <button class="edit-button">Uredi profil</button>
         </div>
-        <button class="edit-button">Uredi profil</button>
-      </div>
-
     <div class="profile-details">
       <h2>Informacije o profilu</h2>
-      <form id="profile-form" class="profile-form">
+      <form id="profile-form" class="profile-form" method="post">
+        {% csrf_token %}
         <div class="form-group">
           <label for="username">Korisničko ime</label>
-          <input type="text" id="username" value="{{ user.username }}" readonly>
+          <input type="text" id="username" name="username" value="{{ user.username }}" readonly>
         </div>
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" value="{{ user.email }}" readonly>
+          <input type="email" id="email" name="email" value="{{ user.email }}" readonly>
         </div>
         <div class="form-group">
           <label for="bio">Bio</label>
-          <textarea id="bio" readonly>{{ user.userprofile.bio|default_if_none:"" }}</textarea>
+          <textarea id="bio" name="bio" readonly>{{ user.userprofile.bio|default_if_none:"" }}</textarea>
         </div>
         <button type="submit" class="save-button">Spremi promjene</button>
       </form>
     </div>
-
     <div class="account-actions">
       <h2>Postavke računa</h2>
       <button class="action-button change-password">Promijeni zaporku</button>
-      <button class="action-button logout">Odjavi se</button>
+      <form action="{% url 'logout' %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="action-button logout">Odjavi se</button>
+      </form>
     </div>
   </div>
 </div>
 
+{% if messages %}
+<div class="messages">
+  {% for message in messages %}
+    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <script src="{% static 'scripts/profile.js' %}"></script>
+<script src="{% static 'scripts/profile-picture-upload.js' %}"></script>
 {% endblock %}
