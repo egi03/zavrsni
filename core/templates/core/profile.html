@@ -13,8 +13,8 @@
     <div class="profile-header">
         <div class="profile-left">
           <div class="profile-picture">
-            {% if user.profile_picture %}
-              <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+            {% if user.userprofile.profile_picture %}
+              <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture">
             {% else %}
               <div class="placeholder-picture">
                 <span>{{ user.username|slice:":1"|upper }}</span>
@@ -24,14 +24,12 @@
             <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
           </div>
           <div class="profile-info">
-            <h1>{{ user.username }} username</h1>
-            <p>{{ user.email }} mail</p>
+            <h1>{{ user.username }}</h1>
+            <p>{{ user.email }}</p>
           </div>
         </div>
         <button class="edit-button">Uredi profil</button>
       </div>
-
-
 
     <div class="profile-details">
       <h2>Informacije o profilu</h2>
@@ -46,7 +44,7 @@
         </div>
         <div class="form-group">
           <label for="bio">Bio</label>
-          <textarea id="bio" readonly>{{ user.bio|default_if_none:"" }}</textarea>
+          <textarea id="bio" readonly>{{ user.userprofile.bio|default_if_none:"" }}</textarea>
         </div>
         <button type="submit" class="save-button">Spremi promjene</button>
       </form>
