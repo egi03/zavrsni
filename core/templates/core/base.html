@@ -16,9 +16,13 @@
     <div class="nav_links">
       <a href="{% url 'home' %}">Početna</a>
       <span class="line"></span>
-      <a href="{% url 'register' %}">Registracija</a>
-      <a href="{% url 'login' %}">Prijava</a>
-      <a href="{% url 'profile' %}">Profil</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'profile' %}">Profil</a>
+        <a href="{% url 'logout' %}">Odjava</a>
+      {% else %}
+        <a href="{% url 'register' %}">Registracija</a>
+        <a href="{% url 'login' %}">Prijava</a>
+      {% endif %}
     </div>
     <div class="hamburger" id="hamburger">
       <span class="bar"></span>
