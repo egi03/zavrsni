@@ -109,3 +109,48 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('register')
+
+@login_required
+def profile(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        if 'remove_profile_picture' in request.POST:
+            if user_profile.profile_picture:
+                user_profile.profile_picture.delete()
+                user_profile.profile_picture = None
+                user_profile.save()
+                messages.success(request, 'Profile picture removed successfully.')
+            return redirect('profile')
+        
+        
+        if 'profile_picture_data' in request.POST and request.POST['profile_picture_data']:
+            import base64
+            from django.core.files.base import ContentFile
+            
+            image_data = request.POST['profile_picture_data']
+            
+            if ',' in image_data:
+                format, imgstr = image_data.split(';base64,')
+                ext = format.split('/')[-1]
+                
+                filename = f"profile_{request.user.username}.{ext}"
+                
+                data = ContentFile(base64.b64decode(imgstr), name=filename)
+                
+                user_profile.profile_picture = data
+                user_profile.save()
+                
+                messages.success(request, 'Your profile picture has been updated!')
+                return redirect('profile')
+        
+        elif 'profile_picture' in request.FILES:
+            user_profile.profile_picture = request.FILES['profile_picture']
+            user_profile.save()
+            messages.success(request, 'Your profile picture has been updated!')
+            return redirect('profile')
+    
+    context = {
+        'profile': user_profile
+    }
+    return render(request, 'core/profile.html', context)
