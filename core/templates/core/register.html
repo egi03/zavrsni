@@ -16,6 +16,10 @@
         <p>Prijavi se kako bi pristupio svom računu</p>
         <button class="switch-button" id="slide-right-button">Prijavi se</button>
       </div>
+
+
+
+      
       <div class="sign-up" id="sign-up">
         <h1>Pozdrav!</h1>
         <p>Izradi račun za početak</p>
@@ -26,10 +30,25 @@
     <div class="form" id="form">
       <div class="sign-in" id="sign-in-info">
         <h1>Prijavi se</h1>
-        <form id="sign-in-form">
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Zaporka" required />
+
+        <form id="sign-in-form" method="post" action="{% url 'login' %}">
+          {% csrf_token %}
+          <input type="hidden" id="login_failed" value="{{ login_failed|yesno:'true,false' }}" />
+          
+          <input type="text" name="username" placeholder="Email ili korisničko ime" required />
+          
+          <input type="password" name="password" placeholder="Zaporka" required />
+          
+          {% if login_form.non_field_errors %}
+          <div class="error-message">
+            {% for error in login_form.non_field_errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+          {% endif %}
+          
           <p class="forgot-password">Zaboravio si zaporku?</p>
+          
           <button type="submit" class="control-button in">Prijava</button>
         </form>
       </div>
@@ -37,15 +56,6 @@
       <div class="sign-up" id="sign-up-info">
         <h1>Izradi račun</h1>
         
-        {% if messages %}
-        <div class="messages">
-          {% for message in messages %}
-          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
         
         <form id="sign-up-form" method="post" action="{% url 'register' %}" enctype="multipart/form-data">
           {% csrf_token %}
@@ -89,4 +99,5 @@
 </div>
 
 <script src="{% static 'scripts/registration.js' %}"></script>
+<script src="{% static 'scripts/password-checker.js' %}"></script>
 {% endblock %}
