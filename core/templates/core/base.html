@@ -17,8 +17,10 @@
       <a href="{% url 'home' %}">Početna</a>
       <span class="line"></span>
       {% if user.is_authenticated %}
-        <a href="{% url 'profile' %}">Profil</a>
-        <a href="{% url 'logout' %}">Odjava</a>
+      <a href="{% url 'profile' %}">Profil</a>
+      <a href="{% url 'playlists' %}">Playliste</a>
+      <a href="{% url 'create_playlist' %}">Izradi playlistu</a>
+      <a href="{% url 'logout' %}">Odjava</a>
       {% else %}
         <a href="{% url 'register' %}">Registracija</a>
         <a href="{% url 'login' %}">Prijava</a>
