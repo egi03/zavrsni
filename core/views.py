@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from .forms import UserRegistrationForm, EmailOrUsernameAuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import UserProfile
+from .models import UserProfile, SpotifyToken, Song, Playlist
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 
@@ -77,7 +77,6 @@ def register(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        messages.info(request, 'You are already logged in.')
         return redirect('home')
         
     login_failed = False
@@ -89,7 +88,7 @@ def login_view(request):
             login(request, user)
             messages.success(request, 'Login successful!')
             
-            next_url = request.GET.get('next', 'home')
+            next_url = request.GET.get('next', 'profile')
             return redirect(next_url)
         else:
             login_failed = True
@@ -104,10 +103,9 @@ def login_view(request):
         'login_failed': login_failed  
     })
     
-    
+      
 def logout_view(request):
     logout(request)
-    messages.success(request, 'You have been successfully logged out.')
     return redirect('register')
 
 @login_required
@@ -154,3 +152,61 @@ def profile(request):
         'profile': user_profile
     }
     return render(request, 'core/profile.html', context)
+
+@login_required
+def playlists(request):
+    user_playlists = Playlist.objects.filter(user=request.user)
+    return render(request, 'core/playlists.html', {'playlists': user_playlists})
+
+@login_required
+def playlist_detail(request, playlist_id):
+    playlist = get_object_or_404(Playlist, id=playlist_id)
+    
+    if playlist.user != request.user and not playlist.is_public:
+        messages.error(request, 'You do not have permission to view this playlist.')
+        return redirect('playlists')
+    
+    songs = playlist.songs.all()
+    context = {
+        'playlist': playlist,
+        'songs': songs
+    }
+    return render(request, 'core/playlist_detail.html', context)
+
+@login_required
+def create_playlist(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        description = request.POST.get("description", "No description")
+        is_public = request.POST.get("is_public") == "on"
+        
+        if name:
+            playlist = Playlist.objects.create(
+                name=name,
+                user=request.user,
+                description=description,
+                is_public=is_public
+            )
+            messages.success(request, 'Playlist created successfully!')
+            return redirect('playlist_detail', playlist_id=playlist.id)
+        else:
+            messages.error(request, 'Playlist name is required.')
+    
+    return render(request, 'core/create_playlist.html')
+
+def delete_playlist(request, playlist_id):
+    playlist = get_object_or_404(Playlist, id=playlist_id)
+    
+    if playlist.user == request.user:
+        playlist.delete()
+        messages.success(request, 'Playlist deleted successfully!')
+    else:
+        messages.error(request, 'You do not have permission to delete this playlist.')
+    
+    return redirect('playlists')
+
+def add_to_playlist(request, song_id):
+    return redirect('playlists')
+
+def remove_from_playlist(request, playlist_id, song_id):
+    return redirect('playlists')
