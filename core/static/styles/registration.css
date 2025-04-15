@@ -3,7 +3,7 @@
   --form-width: 70vw;
   --overlay-width: 30vw;
   --hard-green: #1ed760;
-  --light-blue: #96dbe2;
+  --light-green: #08fa5d;
   --padding: 4vw;
 }
 
@@ -19,7 +19,7 @@
 }
 
 .registration-page {
-  background-color: #00000059;
+  background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   font-family: 'Poppins', sans-serif;
   min-height: 100vh;
@@ -29,13 +29,12 @@
   flex-direction: column;
 }
 
-/* Overlay */
 .registration-page .overlay {
   position: absolute;
   width: 100%;
   height: 100%;
   z-index: 60;
-  background: linear-gradient(135deg, #1ed760, #2941ab);
+  background: linear-gradient(135deg, #1ed760, #121212);
   border-radius: 1vw;
   color: #fff;
   clip: rect(0, var(--overlay-width), var(--form-height), 0);
@@ -89,6 +88,7 @@
   font-size: 3rem;
   margin-bottom: 1vh;
   font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .registration-page .overlay p {
@@ -97,7 +97,6 @@
   color: #f0f0f0;
 }
 
-/* Buttons */
 .registration-page .switch-button,
 .registration-page .control-button {
   cursor: pointer;
@@ -139,19 +138,20 @@
 
 .registration-page .control-button.up {
   background-color: #1ed760;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .registration-page .control-button.in {
-  background-color: var(--light-blue);
+  background-color: var(--light-green);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Forms */
 .registration-page .form {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 1vw;
-  background-color: #000;
+  background-color: #0a0a0a;
 }
 
 .registration-page .form .sign-in,
@@ -193,15 +193,17 @@
 }
 
 .registration-page .form .sign-in h1 {
-  color: var(--light-blue);
+  color: var(--light-green);
   font-size: 3rem;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .registration-page .form .sign-up h1 {
   color: var(--hard-green);
   font-size: 3rem;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .registration-page form {
@@ -217,7 +219,7 @@
   padding: 1.3vh 1.5vw;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1vw;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(0.4vh);
   color: #fff;
   font-size: 2vh;
@@ -226,7 +228,7 @@
 }
 
 .registration-page input::placeholder {
-  color: #cac8c8;
+  color: #888;
   letter-spacing: 1px;
 }
 
@@ -241,6 +243,7 @@
 
 .registration-page .forgot-password:hover {
   border-bottom: 1px solid #fff;
+  color: #fff;
 }
 
 /* Animations */
@@ -305,12 +308,6 @@
   100% { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes slide-in {
-  0% { transform: translateY(2vh); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-
-/* Responsivness */
 @media (max-width: 768px) {
   :root {
     --form-height: 80vh;
