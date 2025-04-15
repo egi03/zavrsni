@@ -1,0 +1,102 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ playlist.name }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/card.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/playlist-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="playlist-header">
+    <h1>{{ playlist.name }}</h1>
+    <div class="playlist-info">
+      <span><i class="fas fa-user"></i> {{ playlist.user.username }}</span>
+      <span><i class="fas fa-music"></i> {{ songs|length }} pjesama</span>
+      <span><i class="fas fa-calendar"></i> Kreirana: {{ playlist.created_at|date:"d/m/Y" }}</span>
+      <span>
+        {% if playlist.is_public %}
+          <i class="fas fa-globe"></i> Public
+        {% else %}
+          <i class="fas fa-lock"></i> Private
+        {% endif %}
+      </span>
+    </div>
+    
+    {% if playlist.description %}
+      <div class="playlist-description">
+        {{ playlist.description }}
+      </div>
+    {% endif %}
+    
+    {% if request.user == playlist.user %}
+      <div class="playlist-actions">
+        <a href="#" class="playlist-action-btn">
+          <i class="fas fa-edit"></i> Uredi
+        </a>
+        <a href="{% url 'delete_playlist' playlist.id %}" class="playlist-action-btn delete">
+          <i class="fas fa-trash"></i> Obrisi
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  
+  {% if messages %}
+  <div class="messages" style="position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 350px;">
+    {% for message in messages %}
+      <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" 
+           style="padding: 12px 16px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+                  animation: fadeIn 0.3s, fadeOut 0.5s 4.5s forwards; 
+                  {% if message.tags == 'success' %}background-color: #4CAF50; color: white;{% elif message.tags == 'error' %}background-color: #f44336; color: white;{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  {% if songs %}
+    <div class="songs-container">
+      {% for song in songs %}
+        <div class="card">
+          {% if request.user == playlist.user %}
+            <div class="song-actions">
+              <form action="{% url 'remove_from_playlist' playlist.id song.id %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="song-action-btn" title="Remove from playlist">
+                  <i class="fas fa-times"></i>
+                </button>
+              </form>
+            </div>
+          {% endif %}
+          
+          <img src="{{ song.photo }}" alt="Album Cover" class="card-image">
+          <div class="play-button">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+          <div class="card-content">
+            <p class="heading">{{ song.title }}</p>
+            <p>Performed by</p>
+            <p>{{ song.artist }}</p>
+          </div>
+          <div class="song-info">
+            <p class="heading">{{ song.title }}</p>
+            <p class="artist">by <strong>{{ song.artist }}</strong></p>
+            <p class="album">from <strong>{{ song.album }}</strong></p>
+            <p class="year">in <strong>{{ song.year }}</strong></p>
+            <p class="genre">{{ song.genre }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-songs">
+      <p>nema pjesama.</p>
+      <p>dodaj pjesme!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
