@@ -27,7 +27,7 @@ class SpotifyToken(models.Model):
         return self.token_expires > timezone.now()
 
 class Song(models.Model):
-    title = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     artist = models.CharField(max_length=200)
     album = models.CharField(max_length=200)
     year = models.CharField(max_length=4)
