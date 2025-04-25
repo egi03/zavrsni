@@ -6,6 +6,7 @@
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'styles/card.css' %}">
   <link rel="stylesheet" href="{% static 'styles/playlist-detail.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -37,19 +38,30 @@
           <i class="fas fa-edit"></i> Uredi
         </a>
         <a href="{% url 'delete_playlist' playlist.id %}" class="playlist-action-btn delete">
-          <i class="fas fa-trash"></i> Obrisi
+          <i class="fas fa-trash"></i> Obriši
         </a>
       </div>
     {% endif %}
   </div>
   
+  {% if request.user == playlist.user %}
+    <div class="search-container" data-playlist-id="{{ playlist.id }}">
+      <div class="search-input-wrapper">
+        <input type="text" id="song-search" class="search-input" placeholder="Pretraži pjesme..." autocomplete="off">
+        <i class="fas fa-search search-icon"></i>
+        <div class="search-spinner" id="search-spinner">
+          <i class="fas fa-circle-notch fa-spin"></i>
+        </div>
+      </div>
+      <div class="search-results" id="search-results">
+      </div>
+    </div>
+  {% endif %}
+  
   {% if messages %}
-  <div class="messages" style="position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 350px;">
+  <div class="messages">
     {% for message in messages %}
-      <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" 
-           style="padding: 12px 16px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
-                  animation: fadeIn 0.3s, fadeOut 0.5s 4.5s forwards; 
-                  {% if message.tags == 'success' %}background-color: #4CAF50; color: white;{% elif message.tags == 'error' %}background-color: #f44336; color: white;{% endif %}">
+      <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
         {{ message }}
       </div>
     {% endfor %}
@@ -99,4 +111,11 @@
     </div>
   {% endif %}
 </div>
+
+<!-- Pass playlist ID to js -->
+<script>
+  const playlistIdFromTemplate = "{{ playlist.id }}";
+</script>
+
+<script src="{% static 'scripts/song-search.js' %}"></script>
 {% endblock %}
