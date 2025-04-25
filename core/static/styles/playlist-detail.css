@@ -1,13 +1,14 @@
 .playlist-header {
-  background: linear-gradient(135deg, rgba(30, 215, 96, 0.3), rgba(41, 65, 171, 0.3));
+  /*background: linear-gradient(135deg, rgba(30, 215, 96, 0.3), rgba(41, 65, 171, 0.3));*/
+  background: transparent;
   border-radius: 15px;
   padding: 40px 30px;
   margin-bottom: 30px;
   text-align: center;
   color: #fff;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(19, 226, 0, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .playlist-header h1 {

@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
               const songResult = document.createElement('div');
               songResult.className = 'song-result';
               songResult.innerHTML = `
-                <img src="${song.album_image || '/static/photos/playlist-default.jpg'}" alt="${song.title} Cover">
+                <img src="${song.album_image || '/static/photos/playlist-default.jpg'}" alt="${song.name} Cover">
                 <div class="song-result-info">
-                  <p class="song-result-title">${song.title}</p>
+                  <p class="song-result-name">${song.name}</p>
                   <p class="song-result-artist">${song.artist}</p>
                   <p class="song-result-album">${song.album}</p>
                 </div>

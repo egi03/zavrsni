@@ -176,7 +176,7 @@
   flex-grow: 1;
 }
 
-.song-result-title {
+.song-result-name {
   font-weight: bold;
   color: white;
   margin: 0 0 5px 0;
@@ -236,7 +236,7 @@
     height: 50px;
   }
   
-  .song-result-title {
+  .song-result-name {
     font-size: 1rem;
   }
   
@@ -271,7 +271,7 @@
     margin-right: 10px;
   }
   
-  .song-result-title {
+  .song-result-name {
     font-size: 0.9rem;
   }
   
