@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ playlist.name }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/card.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/playlist-detail.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="playlist-header">
+    <h1>{{ playlist.name }}</h1>
+    <div class="playlist-info">
+      <span><i class="fas fa-user"></i> {{ playlist.user.username }}</span>
+      <span><i class="fas fa-music"></i> {{ songs|length }} pjesama</span>
+      <span><i class="fas fa-calendar"></i> Kreirana: {{ playlist.created_at|date:"d/m/Y" }}</span>
+      <span>
+        {% if playlist.is_public %}
+          <i class="fas fa-globe"></i> Public
+        {% else %}
+          <i class="fas fa-lock"></i> Private
+        {% endif %}
+      </span>
+    </div>
+    
+    {% if playlist.description %}
+      <div class="playlist-description">
+        {{ playlist.description }}
+      </div>
+    {% endif %}
+    
+    {% if request.user == playlist.user %}
+      <div class="playlist-actions">
+        <a href="#" class="playlist-action-btn">
+          <i class="fas fa-edit"></i> Uredi
+        </a>
+        <a href="{% url 'music:delete_playlist' playlist.id %}" class="playlist-action-btn delete">
+          <i class="fas fa-trash"></i> Obriši
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  
+  {% if request.user == playlist.user %}
+    <div class="search-container" data-playlist-id="{{ playlist.id }}">
+      <div class="search-input-wrapper">
+        <input type="text" id="song-search" class="search-input" placeholder="Pretraži pjesme..." autocomplete="off">
+        <i class="fas fa-search search-icon"></i>
+        <div class="search-spinner" id="search-spinner">
+          <i class="fas fa-circle-notch fa-spin"></i>
+        </div>
+      </div>
+      <div class="search-results" id="search-results">
+      </div>
+    </div>
+  {% endif %}
+  
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+      <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  {% if songs %}
+    <div class="songs-container">
+      {% for song in songs %}
+        <div class="card">
+          {% if request.user == playlist.user %}
+            <div class="song-actions">
+              <form action="{% url 'music:remove_from_playlist' playlist.id song.id %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="song-action-btn" title="Remove from playlist">
+                  <i class="fas fa-times"></i>
+                </button>
+              </form>
+            </div>
+          {% endif %}
+          
+          <img src="{{ song.photo }}" alt="Album Cover" class="card-image">
+          <div class="play-button">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+          <div class="card-content">
+            <p class="heading">{{ song.name }}</p>
+            <p>Performed by</p>
+            <p>{{ song.artist }}</p>
+          </div>
+          <div class="song-info">
+            <p class="heading">{{ song.name }}</p>
+            <p class="artist">by <strong>{{ song.artist }}</strong></p>
+            <p class="album">from <strong>{{ song.album }}</strong></p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-songs">
+      <p>nema pjesama.</p>
+      <p>dodaj pjesme!</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Pass playlist ID to js -->
+<script>
+  const playlistIdFromTemplate = "{{ playlist.id }}";
+</script>
+
+<script src="{% static 'scripts/song-search.js' %}"></script>
+{% endblock %}

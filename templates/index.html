@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Početna{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+  <div class="container">
+    <h1>Pronađi svoju novu <span>omiljenu pjesmu!</span></h1>
+    <p>Dostupno više od 100 milijuna pjesama</p>
+    <button>POKRENI</button>
+  </div>
+  <div class="scroll-icon"></div>
+</div>
+
+<section id="section1" class="hidden">
+  <p class="section-number"><span class="first-digit">0</span><span class="second-digit">0</span></p>
+  <p class="section-header">Dobrodošli!</p>
+  <p class="section-description">Naš inteligentni sustav za prijedlog glazbe će prepoznati vaš ukus, <br> predložiti vam pjesme u kojima će te uživati</p>
+  <img src="{% static 'photos/robot.svg' %}" alt="robot">
+  <h1 class="big-text">KAKO</h1> <br><br>
+  <div class="scroll-icon"></div>
+</section>
+
+<section id="section2" class="hidden">
+  <div class="section-container">
+    <div class="text-content">
+      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">1</span></p>
+      <p class="section-header">Odabir</p>
+      <p class="section-description">Započnite sa označavanjm pjesama sa "sviđa mi se"</p>
+    </div>
+    <div class="image-content icon">
+      <img src="{% static 'photos/like.svg' %}" alt="like">
+    </div>
+  </div>
+</section>
+
+<section id="section3" class="hidden">
+  <div class="section-container-reverse">
+    <div class="text-content-reverse">
+      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">2</span></p>
+      <p class="section-header">Analiza</p>
+      <p class="section-description">Naš model analizira vaš odabir i shvaća vaš unikatni ukus</p>
+    </div>
+    <div class="image-content icon">
+      <img src="{% static 'photos/visual_data.svg' %}" alt="visual data">
+    </div>
+  </div>
+</section>
+
+<section id="section4" class="hidden">
+  <div class="section-container">
+    <div class="text-content">
+      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">3</span></p>
+      <p class="section-header">Rezultati</p>
+      <p class="section-description">Vaša personalizirana playlista je spremna!</p>
+    </div>
+    <div class="image-content icon">
+      <img src="{% static 'photos/playlist.svg' %}" alt="playlist">
+    </div>
+  </div>
+  <button class="big-button">KLIKNI ZA POČETAK!</button>
+</section>
+
+{% endblock %}
