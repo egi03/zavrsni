@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} {{ profile.username }} {% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'styles/user-profile.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="user-profile-page">
+        <div class="profile-header-section">
+            <div class="profile-banner">
+                <div class="profile-gradient"></div>
+            </div>
+            
+            <div class="profile-main-info">
+                <div class="profile-avatar">
+                    {% if profile.userprofile.profile_picture %}
+                        <img src="{{ profile.userprofile.profile_picture.url }}" alt="Profile Picture">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            <span>{{ profile.username|slice:":1"|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-details">
+                    <span class="profile-label">Profil</span>
+                    <h1 class="profile-username">{{ profile.username }}</h1>
+                    <div class="profile-stats">
+                        <span class="stat-item">
+                            <strong>{{ playlists|length }}</strong> Playlista
+                        </span>
+                        <span class="stat-divider">•</span>
+                        <span class="stat-item">
+                            <strong>{{ total_songs }}</strong> Pjesama
+                        </span>
+                        <span class="stat-divider">•</span>
+                        <span class="stat-item">
+                            <strong>45</strong> Pratitelja
+                        </span>
+                    </div>
+                    <p class="profile-bio">
+                        {{ profile.userprofile.bio|default:"Nema opisa" }}
+                    </p>
+                    
+                    <div class="profile-actions">
+                        <button class="btn-follow">
+                            <i class="fas fa-user-plus"></i> Prati
+                        </button>
+                        <button class="btn-share">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                        <button class="btn-more">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="section-header">
+                <h2>Javne Playliste</h2>
+                <div class="view-options">
+                    <button class="view-btn active" data-view="grid">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            {% if playlists %}
+                <!-- Grid View -->
+                <div class="playlists-grid" id="playlists-grid">
+                    {% for playlist in playlists %}
+                        <a href="{% url 'music:playlist_detail' playlist.id %}" class="playlist-card">
+                            <div class="playlist-cover">
+                                {% if playlist.songs.first.photo %}
+                                    <img src="{{ playlist.songs.first.photo }}" alt="{{ playlist.name }} Cover">
+                                {% else %}
+                                    <img src="{% static 'photos/playlist-default.jpg' %}" alt="Default Playlist Cover">
+                                {% endif %}
+                                
+                                <div class="playlist-overlay">
+                                    <div class="play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="playlist-info">
+                                <h3 class="playlist-title">{{ playlist.name }}</h3>
+                                <p class="playlist-description">{{ playlist.description|default:"" }}</p>
+                                <div class="playlist-meta">
+                                    <span><i class="fas fa-music"></i> {{ playlist.songs.count }} pjesama</span>
+                                    <span><i class="fas fa-calendar"></i> {{ playlist.created_at|date:"d/m/Y" }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+
+                <!-- List View -->
+                <div class="playlists-list" id="playlists-list" style="display: none;">
+                    {% for playlist in playlists %}
+                        <a href="{% url 'music:playlist_detail' playlist.id %}" class="playlist-list-item">
+                            <div class="list-item-image">
+                                {% if playlist.songs.first.photo %}
+                                    <img src="{{ playlist.songs.first.photo }}" alt="{{ playlist.name }} Cover">
+                                {% else %}
+                                    <img src="{% static 'photos/playlist-default.jpg' %}" alt="Default Playlist Cover">
+                                {% endif %}
+                                <div class="list-play-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="list-item-info">
+                                <h3 class="list-item-title">{{ playlist.name }}</h3>
+                                <p class="list-item-description">{{ playlist.description|default:"Nema opisa" }}</p>
+                                <div class="list-item-meta">
+                                    <span><i class="fas fa-music"></i> {{ playlist.songs.count }} pjesama</span>
+                                    <span><i class="fas fa-calendar"></i> {{ playlist.created_at|date:"d/m/Y" }}</span>
+                                    <span>
+                                        {% if playlist.is_public %}
+                                            <i class="fas fa-globe"></i> Javna
+                                        {% else %}
+                                            <i class="fas fa-lock"></i> Privatna
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="list-item-actions">
+                                <button class="list-action-btn" onclick="event.preventDefault(); event.stopPropagation();">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-music"></i>
+                    <h3>Nema javnih playlista</h3>
+                    <p>Ovaj korisnik još nije kreirao javne playliste</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const view = this.dataset.view;
+                const gridView = document.getElementById('playlists-grid');
+                const listView = document.getElementById('playlists-list');
+                
+                if (view === 'grid') {
+                    if (gridView) gridView.style.display = 'grid';
+                    if (listView) listView.style.display = 'none';
+                } else {
+                    if (gridView) gridView.style.display = 'none';
+                    if (listView) listView.style.display = 'block';
+                }
+            });
+        });
+    </script>
+{% endblock %}
