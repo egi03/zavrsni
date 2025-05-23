@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegistrationForm, EmailOrUsernameAuthenticationForm
 from .models import UserProfile
+from music.models import Playlist
 import base64
 from django.core.files.base import ContentFile
 
@@ -100,3 +101,17 @@ def profile(request):
         'profile': user_profile
     }
     return render(request, 'accounts/profile.html', context)
+
+
+def profile_view(request, username):
+    try:
+        user_profile = UserProfile.objects.get(user__username=username)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('accounts:profile')
+    
+    context = {
+        'playlists': Playlist.objects.filter(user=user_profile.user, is_public=True),
+        'profile': user_profile.user,
+    }
+    return render(request, 'accounts/profile_view.html', context)
