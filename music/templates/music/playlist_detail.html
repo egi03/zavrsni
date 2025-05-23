@@ -4,9 +4,9 @@
 {% block title %}{{ playlist.name }}{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'styles/card.css' %}">
   <link rel="stylesheet" href="{% static 'styles/playlist-detail.css' %}">
   <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/songs-container.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -69,45 +69,71 @@
   {% endif %}
   
   {% if songs %}
-    <div class="songs-container">
-      {% for song in songs %}
-        <div class="card">
-          {% if request.user == playlist.user %}
-            <div class="song-actions">
-              <form action="{% url 'music:remove_from_playlist' playlist.id song.id %}" method="post" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" class="song-action-btn" title="Remove from playlist">
-                  <i class="fas fa-times"></i>
-                </button>
-              </form>
+  <div class="songs-scroll-wrapper">
+    <div class="songs-scroll-container">
+      <div class="songs-scroll-header">
+        <h2 class="songs-scroll-title">
+          <i class="fas fa-music"></i>
+          Pjesme
+        </h2>
+        <span class="songs-count">Broj pjesama: {{ songs|length }}</span>
+      </div>
+      
+      <div class="songs-scrollable">
+        <div class="songs-grid">
+          {% for song in songs %}
+            <div class="song-card">
+              {% if request.user == playlist.user %}
+                <div class="song-card-actions">
+                  <form action="{% url 'music:remove_from_playlist' playlist.id song.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="song-card-remove-btn" title="Remove from playlist">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+              
+              <div class="song-card-image-container">
+                <img src="{{ song.photo }}" alt="{{ song.name }} cover" class="song-card-image">
+                <div class="song-card-play-overlay">
+                  <div class="song-card-play-button">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="song-card-content">
+                <h3 class="song-card-title">{{ song.name }}</h3>
+                <p class="song-card-artist">{{ song.artist }}</p>
+                <p class="song-card-album">{{ song.album }}</p>
+              </div>
+              
+              <div class="song-card-playing">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
-          {% endif %}
-          
-          <img src="{{ song.photo }}" alt="Album Cover" class="card-image">
-          <div class="play-button">
-            <svg viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </div>
-          <div class="card-content">
-            <p class="heading">{{ song.name }}</p>
-            <p>Performed by</p>
-            <p>{{ song.artist }}</p>
-          </div>
-          <div class="song-info">
-            <p class="heading">{{ song.name }}</p>
-            <p class="artist">by <strong>{{ song.artist }}</strong></p>
-            <p class="album">from <strong>{{ song.album }}</strong></p>
-          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
+      
+      <div class="scroll-indicator bottom">
+        <i class="fas fa-chevron-down"></i>
+      </div>
     </div>
-  {% else %}
-    <div class="no-songs">
-      <p>nema pjesama.</p>
-      <p>dodaj pjesme!</p>
-    </div>
-  {% endif %}
+  </div>
+{% else %}
+  <div class="songs-empty">
+    <i class="fas fa-music"></i>
+    <h3>Još nema pjesama</h3>
+    <p>Dodajte pjesme!</p>
+  </div>
+{% endif %}
 </div>
 
 <!-- Pass playlist ID to js -->
