@@ -23,7 +23,7 @@ class UserRegistrationForm(UserCreationForm):
     
     def clean_username(self):
         """Check if username is already in use"""
-        username = self.cleaned_data.get('username')
+        username = self.cleaned_data.get('username').lower()
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("Račun sa ovim korisničkim imenom već postoji")
         
