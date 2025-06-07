@@ -7,6 +7,8 @@ from .models import UserProfile
 from music.models import Playlist
 import base64
 from django.core.files.base import ContentFile
+from django.http import JsonResponse
+
 
 def register(request):
     if request.user.is_authenticated:
@@ -115,3 +117,20 @@ def profile_view(request, username):
         'profile': user_profile.user,
     }
     return render(request, 'accounts/profile_view.html', context)
+
+def search_profiles(request):
+    query = request.GET.get('q', '')
+    
+    if len(query) < 2:
+        return JsonResponse({'users': []})
+    
+    users = UserProfile.objects.filter(user__username__icontains=query)
+    
+    user_data = []
+    for user in users:
+        user_data.append({
+            'username': user.user.username,
+            'profile_picture': user.profile_picture.url if user.profile_picture else None
+        })
+
+    return JsonResponse({'users': user_data})
