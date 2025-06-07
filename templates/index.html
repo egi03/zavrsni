@@ -2,66 +2,231 @@
 {% load static %}
 {% block title %}Početna{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/homepage.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="content">
-  <div class="circle circle1"></div>
-  <div class="circle circle2"></div>
-  <div class="circle circle3"></div>
-  <div class="container">
-    <h1>Pronađi svoju novu <span>omiljenu pjesmu!</span></h1>
-    <p>Dostupno više od 100 milijuna pjesama</p>
-    <button>POKRENI</button>
+<div class="cursor"></div>
+<div class="cursor-outline"></div>
+<div class="cursor-text"></div>
+
+<div class="hero-enhanced interactive-glow">
+  <div class="floating-element floating-element-1 scale-in delay-1"></div>
+  <div class="floating-element floating-element-2 scale-in delay-2"></div>
+  <div class="floating-element floating-element-3 scale-in delay-3"></div>
+  <div class="floating-element floating-element-4 scale-in delay-4"></div>
+  
+  <div class="hero-content-enhanced">
+    <div class="hero-badge slide-in-left magnetic" data-cursor-text="AI Powered">
+      <i class="fas fa-sparkles"></i>
+      AI-Powered
+    </div>
+    
+    <h1 class="hero-title-enhanced text-reveal">
+      <span class="green-text">AI-driven</span> <span></span><br>
+      <span class="gradient-text">preporuke glazbe</span>
+    </h1>
+    
+    <p class="hero-subtitle-enhanced blur-in delay-2">
+      Naš napredni AI sustav analizira vaš ukus i preporuča vam pjesme koje će vas oduševiti. Pristupite katalogu od preko 100 milijuna pjesama.
+    </p>
+    
+    <a href="#" class="hero-cta-enhanced scale-in delay-4 magnetic" data-cursor-text="Klikni za početak!">
+      <i class="fas fa-play"></i>
+      POKRENI
+    </a>
   </div>
-  <div class="scroll-icon"></div>
+  
+  <div class="scroll-indicator-enhanced fade-in delay-5 magnetic" data-cursor-text="Skrolaj dolje">
+    <i class="fas fa-chevron-down"></i>
+  </div>
 </div>
 
-<section id="section1" class="hidden">
-  <p class="section-number"><span class="first-digit">0</span><span class="second-digit">0</span></p>
-  <p class="section-header">Dobrodošli!</p>
-  <p class="section-description">Naš inteligentni sustav za prijedlog glazbe će prepoznati vaš ukus, <br> predložiti vam pjesme u kojima će te uživati</p>
-  <img src="{% static 'photos/robot.svg' %}" alt="robot">
-  <h1 class="big-text">KAKO</h1> <br><br>
-  <div class="scroll-icon"></div>
-</section>
-
-<section id="section2" class="hidden">
-  <div class="section-container">
-    <div class="text-content">
-      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">1</span></p>
-      <p class="section-header">Odabir</p>
-      <p class="section-description">Započnite sa označavanjm pjesama sa "sviđa mi se"</p>
-    </div>
-    <div class="image-content icon">
-      <img src="{% static 'photos/like.svg' %}" alt="like">
-    </div>
-  </div>
-</section>
-
-<section id="section3" class="hidden">
-  <div class="section-container-reverse">
-    <div class="text-content-reverse">
-      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">2</span></p>
-      <p class="section-header">Analiza</p>
-      <p class="section-description">Naš model analizira vaš odabir i shvaća vaš unikatni ukus</p>
-    </div>
-    <div class="image-content icon">
-      <img src="{% static 'photos/visual_data.svg' %}" alt="visual data">
+<section class="section-enhanced bg-gradient-1 interactive-glow">
+  <div class="section-container-enhanced">
+    <div class="progressive-reveal">
+      <div class="reveal-item">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; text-align: center; margin: 2rem 0;">
+          <div class="scale-in delay-1 magnetic" data-cursor-text="Ogromna biblioteka">
+            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;" class="counter">100M+</h3>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnih pjesama</p>
+          </div>
+          <div class="scale-in delay-2 magnetic" data-cursor-text="Umjetna inteligencija">
+            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">AI</h3>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Napredni algoritmi</p>
+          </div>
+          <div class="scale-in delay-3 magnetic" data-cursor-text="Uvijek dostupno">
+            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">24/7</h3>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnost</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="section4" class="hidden">
-  <div class="section-container">
-    <div class="text-content">
-      <p class="section-number"><span class="first-digit">0</span><span class="second-digit">3</span></p>
-      <p class="section-header">Rezultati</p>
-      <p class="section-description">Vaša personalizirana playlista je spremna!</p>
+<section class="section-enhanced bg-gradient-2 interactive-glow">
+  <div class="section-container-enhanced">
+    <div class="section-header-enhanced animate-on-scroll">
+      <div class="section-badge slide-in-left magnetic" data-cursor-text="Prvi korak">01 - Kako funkcionira</div>
+      <h2 class="section-title-enhanced text-reveal">
+        <span>Dobrodošli!</span>
+      </h2>
+      <p class="section-description-enhanced blur-in delay-2">
+        Naš inteligentni sustav za prijedlog glazbe će prepoznati vaš ukus i predložiti vam pjesme u kojima ćete uživati
+      </p>
     </div>
-    <div class="image-content icon">
-      <img src="{% static 'photos/playlist.svg' %}" alt="playlist">
+    
+    <div style="display: flex; justify-content: center; align-items: center; margin: 4rem 0; flex-wrap: wrap; gap: 2rem;">
+      <div class="slide-in-left delay-1 magnetic" data-cursor-text="Prvi korak" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">1</div>
+        <span style="color: var(--text-secondary);">Odabir</span>
+      </div>
+      
+      <div class="fade-in delay-2" style="color: var(--spotify-green); font-size: 2rem;">
+        <i class="fas fa-arrow-right"></i>
+      </div>
+      
+      <div class="slide-in-left delay-3 magnetic" data-cursor-text="Drugi korak" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">2</div>
+        <span style="color: var(--text-secondary);">Analiza</span>
+      </div>
+      
+      <div class="fade-in delay-4" style="color: var(--spotify-green); font-size: 2rem;">
+        <i class="fas fa-arrow-right"></i>
+      </div>
+      
+      <div class="slide-in-left delay-5 magnetic" data-cursor-text="Treći korak" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">3</div>
+        <span style="color: var(--text-secondary);">Rezultati</span>
+      </div>
+    </div>
+    
+    <div class="features-grid-enhanced">
+      <div class="feature-card-enhanced slide-in-left delay-1 interactive-glow magnetic" data-cursor-text="Označite pjesme">
+        <div class="feature-icon-enhanced icon-1 rotate-in delay-1">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h3 class="text-reveal delay-2">
+          <span>Odabir</span>
+        </h3>
+        <p class="fade-in delay-3">Započnite sa označavanjem pjesama sa "sviđa mi se" i pomognite našem algoritmu da upozna vaš ukus u glazbi.</p>
+      </div>
+      
+      <div class="feature-card-enhanced animate-on-scroll delay-2 interactive-glow magnetic" data-cursor-text="AI analiza">
+        <div class="feature-icon-enhanced icon-2 rotate-in delay-2">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h3 class="text-reveal delay-3">
+          <span>Analiza</span>
+        </h3>
+        <p class="fade-in delay-4">Naš model analizira vaš odabir i shvaća vaš unikatni ukus kroz napredne algoritme strojnog učenja.</p>
+      </div>
+      
+      <div class="feature-card-enhanced slide-in-right delay-3 interactive-glow magnetic" data-cursor-text="Vaša playlista">
+        <div class="feature-icon-enhanced icon-3 rotate-in delay-3">
+          <i class="fas fa-music"></i>
+        </div>
+        <h3 class="text-reveal delay-4">
+          <span>Rezultati</span>
+        </h3>
+        <p class="fade-in delay-5">Vaša personalizirana playlista je spremna! Otkrijte nove pjesme koje savršeno odgovaraju vašem ukusu.</p>
+      </div>
     </div>
   </div>
-  <button class="big-button">KLIKNI ZA POČETAK!</button>
 </section>
+
+<section class="section-enhanced bg-gradient-3 interactive-glow">
+  <div class="section-container-enhanced">
+    <div class="section-header-enhanced">
+      <div class="section-badge slide-in-right magnetic" data-cursor-text="Naše prednosti">02 - Značajke</div>
+      <h2 class="section-title-enhanced text-reveal">
+        <span>Zašto</span> <span>odabrati</span> <span>nas?</span>
+      </h2>
+      <p class="section-description-enhanced blur-in delay-2">
+        Napredne funkcionalnosti koje čine naš sustav jedinstvenim
+      </p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem; margin-top: 4rem;">
+      <div class="slide-in-left delay-1 magnetic interactive-glow" data-cursor-text="Prilagodi se vama" style="text-align: center; padding: 2rem;">
+        <div class="scale-in delay-2" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+          <i class="fas fa-magic"></i>
+        </div>
+        <h3 class="text-reveal delay-3" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          <span>Personalizacija</span>
+        </h3>
+        <p class="fade-in delay-4" style="color: var(--text-secondary); line-height: 1.6;">
+          Algoritam koji se prilagođava vašem ukusu i postaje bolji s vremenom
+        </p>
+      </div>
+      
+      <div class="slide-in-right delay-2 magnetic interactive-glow" data-cursor-text="Brže od munje" style="text-align: center; padding: 2rem;">
+        <div class="scale-in delay-3" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #a55eea, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <h3 class="text-reveal delay-4" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          <span>Brzina</span>
+        </h3>
+        <p class="fade-in delay-5" style="color: var(--text-secondary); line-height: 1.6;">
+          Trenutne preporuke bez čekanja - otkrijte novu glazbu u sekundi
+        </p>
+      </div>
+      
+      <div class="slide-in-left delay-3 magnetic interactive-glow" data-cursor-text="Sigurno i pouzdano" style="text-align: center; padding: 2rem;">
+        <div class="scale-in delay-4" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #26de81, #20bf6b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3 class="text-reveal delay-5" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          <span>Privatnost</span>
+        </h3>
+        <p class="fade-in delay-6" style="color: var(--text-secondary); line-height: 1.6;">
+          Vaši podaci su sigurni - koristimo ih samo za poboljšanje preporuka
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-enhanced cta-section-enhanced interactive-glow">
+  <div class="section-container-enhanced">
+    <div class="cta-content-enhanced">
+      <div class="section-badge slide-in-left delay-1 magnetic" data-cursor-text="Zadnji korak">03 - Početak</div>
+
+      <h5 class="hero-title-enhanced text-reveal">
+        <span>Spremni?
+      </h5>
+      <p class="cta-subtitle-enhanced blur-in delay-3">
+        Pridružite se tisućama korisnika koji već koriste naš AI za otkrivanje nove glazbe
+      </p>
+      
+      <div style="display: flex; justify-content: center; gap: 2rem; margin: 3rem 0; flex-wrap: wrap;">
+        <div class="scale-in delay-4 magnetic" data-cursor-text="Brza registracija" style="text-align: center; max-width: 150px;">
+          <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">1</div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Registriraj se</p>
+        </div>
+        
+        <div class="scale-in delay-5 magnetic" data-cursor-text="Jednostavno ocjenjivanje" style="text-align: center; max-width: 150px;">
+          <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">2</div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Ocijeni pjesme</p>
+        </div>
+        
+        <div class="scale-in delay-6 magnetic" data-cursor-text="Neograničeno uživanje" style="text-align: center; max-width: 150px;">
+          <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">3</div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Uživaj u preporukama</p>
+        </div>
+      </div>
+      
+      <a href="#" class="cta-button-enhanced scale-in delay-4 magnetic" data-cursor-text="Počnimo zajedno!">
+        <i class="fas fa-rocket"></i>
+        KLIKNI ZA POČETAK!
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<script src="{% static 'scripts/homepage.js' %}"></script>
 
 {% endblock %}
