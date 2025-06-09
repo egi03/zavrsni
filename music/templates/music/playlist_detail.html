@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{% static 'styles/playlist-detail.css' %}">
   <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
   <link rel="stylesheet" href="{% static 'styles/songs-container.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/recommendations.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -68,6 +69,114 @@
   </div>
   {% endif %}
   
+  <!-- Recommendations Section -->
+  {% if recommendations_available and request.user == playlist.user and has_enough_songs_for_recommendations %}
+  <div class="recommendations-section">
+    <div class="recommendations-header">
+      <div class="recommendations-title">
+        <h2><i class="fas fa-magic"></i> Preporučene pjesme</h2>
+        <p class="recommendations-subtitle">Na osnovu vaše playliste, predlažemo ove pjesme</p>
+      </div>
+      
+      <div class="recommendations-controls">
+        <div class="strategy-selector">
+          <select id="recommendation-strategy" data-current="{{ current_strategy }}">
+            <option value="balanced" {% if current_strategy == 'balanced' %}selected{% endif %}>Balansirano</option>
+            <option value="discovery" {% if current_strategy == 'discovery' %}selected{% endif %}>Otkrijte novo</option>
+            <option value="popular" {% if current_strategy == 'popular' %}selected{% endif %}>Popularno</option>
+          </select>
+        </div>
+        
+        <button id="refresh-recommendations" class="recommendations-refresh-btn" title="Osvježi preporuke">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="recommendations-content" id="recommendations-content">
+      {% if recommendations %}
+        <div class="recommendations-grid">
+          {% for rec in recommendations %}
+            <div class="recommendation-card" data-song-id="{{ rec.song.id }}">
+              <div class="recommendation-card-image-container">
+                <img src="{{ rec.song.photo }}" alt="{{ rec.song.name }} cover" class="recommendation-card-image">
+                <div class="recommendation-card-overlay">
+                  <button class="add-recommendation-btn" title="Dodaj u plejlistu">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="recommendation-card-content">
+                <h4 class="recommendation-card-title">{{ rec.song.name }}</h4>
+                <p class="recommendation-card-artist">{{ rec.song.artist }}</p>
+                <p class="recommendation-card-album">{{ rec.song.album }}</p>
+                
+                <div class="recommendation-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: {{ rec.score|floatformat:0|add:0 }}%"></div>
+                  </div>
+                  <span class="score-text">{{ rec.score|floatformat:1 }}</span>
+                </div>
+                
+                <div class="recommendation-explanation">
+                  <div class="explanation-item">
+                    <span class="explanation-label">Slični sadržaj:</span>
+                    <span class="explanation-value">{{ rec.explanation.content_audio|floatformat:1 }}</span>
+                  </div>
+                  <div class="explanation-item">
+                    <span class="explanation-label">Popularnost:</span>
+                    <span class="explanation-value">{{ rec.explanation.popularity|floatformat:1 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Show loading skeleton since we have songs but no recommendations yet -->
+        <div class="recommendations-loading" id="recommendations-loading">
+          <div class="loading-header">
+            <div class="loading-spinner">
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+            </div>
+            <div class="loading-text">
+              <h3>Generiram preporuke...</h3>
+              <p>Analiziram vašu playlistu i tražim sličnu glazbu</p>
+              <div class="loading-steps">
+                <span class="loading-step active" data-step="1">Analiziram pjesme</span>
+                <span class="loading-step" data-step="2">Tražim slične pjesme</span>
+                <span class="loading-step" data-step="3">Ocjenjujem preporuke</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Skeleton Cards -->
+          <div class="recommendations-skeleton">
+            {% for i in "123456" %}
+              <div class="skeleton-card">
+                <div class="skeleton-image"></div>
+                <div class="skeleton-content">
+                  <div class="skeleton-line skeleton-title"></div>
+                  <div class="skeleton-line skeleton-artist"></div>
+                  <div class="skeleton-line skeleton-album"></div>
+                  <div class="skeleton-score">
+                    <div class="skeleton-bar"></div>
+                    <div class="skeleton-number"></div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Songs Section -->
   {% if songs %}
   <div class="songs-scroll-wrapper">
     <div class="songs-scroll-container">
@@ -136,10 +245,13 @@
 {% endif %}
 </div>
 
-<!-- Pass playlist ID to js -->
-<script>
-  const playlistIdFromTemplate = "{{ playlist.id }}";
+<script>  
+  window.playlistIdFromTemplate = "{{ playlist.id }}";
+  window.recommendationsAvailable = {{ recommendations_available|yesno:"true,false" }};
+  window.hasEnoughSongsForRecommendations = {{ has_enough_songs_for_recommendations|yesno:"true,false" }};
 </script>
 
 <script src="{% static 'scripts/song-search.js' %}"></script>
+<script src="{% static 'scripts/recommendations.js' %}"></script>
+
 {% endblock %}
