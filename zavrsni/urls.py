@@ -9,6 +9,7 @@ urlpatterns = [
     path('', homepage, name='home'),
     path('accounts/', include('accounts.urls')),
     path('playlists/', include('music.urls')),
+    path('spotify/', include('spotify.urls')),
 ]
 
 if settings.DEBUG:
