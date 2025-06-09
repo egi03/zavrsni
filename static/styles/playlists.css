@@ -74,7 +74,6 @@
                 filter 0.4s ease-out;
 }
 
-/* Enhanced gradient glow */
 .playlist-card::after {
     content: "";
     z-index: -2;
@@ -196,7 +195,6 @@
     transform: scale(1.2);
 }
 
-/* Enhanced play button */
 .playlist-play-button {
     display: flex;
     align-items: center;
@@ -222,7 +220,6 @@
     margin-left: 2px;
 }
 
-/* Enhanced hover effects */
 .playlist-card:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 
@@ -263,7 +260,6 @@
     fill: var(--spotify-green, #1ED760);
 }
 
-/* Enhanced create playlist button */
 .create-playlist-btn {
     display: flex;
     align-items: center;
@@ -324,7 +320,6 @@
     transform: translateY(0) scale(1.02);
 }
 
-/* No playlists state */
 .no-playlists {
     text-align: center;
     color: var(--text-primary, #ffffff);
@@ -354,7 +349,6 @@
     color: var(--text-secondary, #b3b3b3);
 }
 
-/* Messages */
 .messages {
     position: fixed;
     top: 20px;
@@ -423,7 +417,6 @@
     }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .container h1 {
         font-size: 2.5rem;
