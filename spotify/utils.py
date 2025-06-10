@@ -13,17 +13,13 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.exceptions import SpotifyException
 
-SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
-SPOTIFY_API_BASE_URL = 'https://api.spotify.com/v1'
+import logging
+logger = logging.getLogger(__name__)
 
 SPOTIFY_CLIENT_ID = getattr(settings, 'SPOTIFY_CLIENT_ID', '')
 SPOTIFY_CLIENT_SECRET = getattr(settings, 'SPOTIFY_CLIENT_SECRET', '')
 
-import logging
-logger = logging.getLogger(__name__)
-
 class SpotifyClientManager:
-    """Singleton manager for Spotify client"""
     _instance = None
     _client = None
     _token_expires_at = None
@@ -46,33 +42,29 @@ class SpotifyClientManager:
         return self._client
     
     def _create_new_client(self):
-        """Create new Spotify client with fresh token"""
-        if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
-            logger.error("Spotify credentials are missing in settings")
-            self._client = None
-            return
-        
+        """Create new Spotify client"""
         try:
+            if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+                logger.error("Spotify credentials missing")
+                self._client = None
+                return
+            
+            logger.info("Creating Spotify client...")
+            
             client_credentials_manager = SpotifyClientCredentials(
                 client_id=SPOTIFY_CLIENT_ID,
                 client_secret=SPOTIFY_CLIENT_SECRET
             )
             
-            token_info = client_credentials_manager.get_access_token()
-            if not token_info:
-                logger.error("Failed to obtain Spotify access token")
-                self._client = None
-                return
-            
             self._client = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
             
-            # Set expiration time (tokens typically last 3600 seconds, we refresh 5 min early)
-            self._token_expires_at = datetime.now() + timedelta(seconds=3300)  # 55 minutes
+            test_result = self._client.search(q="test", type="track", limit=1)
+            logger.info("Spotify client created and tested successfully")
             
-            logger.info("Successfully created new Spotify client")
+            self._token_expires_at = datetime.now() + timedelta(seconds=3300)
             
         except Exception as e:
-            logger.error(f"Error creating Spotify client: {str(e)}")
+            logger.error(f"Error creating Spotify client: {e}")
             self._client = None
 
 spotify_manager = SpotifyClientManager()
@@ -113,7 +105,6 @@ def search_songs(query, limit=5):
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
                 retry_delay *= 2
-
                 if e.http_status in [401, 403]:
                     spotify_manager._client = None
             else:
@@ -168,7 +159,7 @@ def get_track(track_id):
 
 def get_track_audio_features(track_id):
     if not track_id:
-        logger.warning("No track_id")
+        logger.warning("No track_id provided")
         return None
     
     cache_key = f"audio_features_{track_id}"
@@ -186,13 +177,13 @@ def get_track_audio_features(track_id):
                 logger.error("No Spotify client available for audio features")
                 return None
             
-            logger.info(f"Attempting to get audio features for track: {track_id}")
+            logger.info(f"Getting audio features for track: {track_id}")
             
             features = sp.audio_features([track_id])
             
             if features and len(features) > 0 and features[0] is not None:
-                cache.set(cache_key, features[0], 3600)
-                logger.info(f"Successfully retrieved audio features for track: {track_id}")
+                logger.info(f"Successfully retrieved audio features for: {track_id}")
+                cache.set(cache_key, features[0], 3600)  # Cache for 1 hour
                 return features[0]
             else:
                 logger.warning(f"No audio features returned for track: {track_id}")
@@ -205,11 +196,8 @@ def get_track_audio_features(track_id):
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
                 retry_delay *= 2
-                
                 if e.http_status in [401, 403]:
-                    logger.info("Authentication error, forcing token refresh")
                     spotify_manager._client = None
-                    spotify_manager._token_expires_at = None
             else:
                 logger.error(f"Failed to get audio features for {track_id} after {max_retries} attempts")
                 return None
@@ -225,12 +213,10 @@ def get_track_audio_features(track_id):
     return None
 
 def get_multiple_track_audio_features(track_ids):
-    """Get audio features for multiple tracks efficiently"""
     if not track_ids:
         return {}
     
-    # Spotify API allows up to 100 tracks per request
-    batch_size = 100
+    batch_size = 100  # Spotify API limit
     all_features = {}
     
     for i in range(0, len(track_ids), batch_size):
@@ -264,7 +250,6 @@ def get_multiple_track_audio_features(track_ids):
                 for track_id, feature in zip(uncached_tracks, features):
                     if feature:
                         all_features[track_id] = feature
-                        # Cache for 1 hour
                         cache_key = f"audio_features_{track_id}"
                         cache.set(cache_key, feature, 3600)
                 
@@ -277,12 +262,54 @@ def get_multiple_track_audio_features(track_ids):
                     retry_delay *= 2
                     if e.http_status in [401, 403]:
                         spotify_manager._client = None
-                        spotify_manager._token_expires_at = None
             except Exception as e:
                 logger.error(f"Unexpected error in batch audio features: {e}")
                 break
     
     return all_features
+
+
+def create_song_from_spotify_track(track_data, fetch_audio_features=False):
+    """
+    Create or update a Song object from Spotify track data
+    
+    Args:
+        track_data: Spotify track data
+        fetch_audio_features: Whether to fetch audio features (default False for recommendations)
+    """
+    from music.models import Song
+    from lastfm.utils import enrich_song_with_lastfm_data
+    
+    track_id = track_data.get('id')
+    if not track_id:
+        return None
+    
+    song_data = {
+        'name': track_data.get('name', 'Unknown'),
+        'artist': ', '.join([artist['name'] for artist in track_data.get('artists', [])]),
+        'album': track_data.get('album', {}).get('name', 'Unknown'),
+        'year': track_data.get('album', {}).get('release_date', '')[:4] or 'Unknown',
+        'genre': 'Unknown',  # Spotify doesn't provide genre in track data
+        'photo': track_data.get('album', {}).get('images', [{}])[0].get('url', '') if track_data.get('album', {}).get('images') else '',
+        'spotify_id': track_id,
+        'spotify_uri': track_data.get('uri', ''),
+        'preview_url': track_data.get('preview_url', ''),
+        'duration_ms': track_data.get('duration_ms', 0),
+        'popularity': track_data.get('popularity', 0)
+    }
+    
+    song, created = Song.objects.update_or_create(
+        spotify_id=track_id,
+        defaults=song_data
+    )
+    
+    if created or not song.lastfm_tags:
+        try:
+            enrich_song_with_lastfm_data(song)
+        except Exception as e:
+            logger.warning(f"Could not enrich song {song.id} with Last.fm data: {e}")
+    
+    return song
 
 # OAuth helper
 class SpotifyAPI:
@@ -309,10 +336,10 @@ class SpotifyAPI:
     
     def get_auth_url(self, request):
         scope = [
-            'playlist-read-private', # Private playlists
-            'playlist-read-collaborative', # Collaborative plalists
-            'user-library-read', # Saved songs/albums
-            'user-read-private' # Basic profile info
+            'playlist-read-private',
+            'playlist-read-collaborative',
+            'user-library-read',
+            'user-read-private'
         ]
         
         params = {
@@ -383,11 +410,9 @@ class SpotifyAPI:
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 401:
-            # 401 -> unauthorized, maybe token expired
             if self.user:
                 spotify_token = SpotifyToken.objects.get(user=self.user)
                 self._refresh_token(spotify_token)
-                # Retry
                 headers = {'Authorization': f'Bearer {self.access_token}'}
                 response = requests.get(url, headers=headers, params=params)
                 if response.status_code == 200:
