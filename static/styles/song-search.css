@@ -3,7 +3,7 @@
   max-width: 800px;
   margin: 40px auto;
   position: relative;
-  z-index: 2000;
+  z-index: 1500;
 }
 
 .search-input-wrapper {
@@ -67,7 +67,7 @@
   font-size: 1.2rem;
 }
 
-.search-results {
+.song-search-results {
   position: absolute;
   width: 100%;
   max-height: 450px;
@@ -83,7 +83,7 @@
   transition: all 0.3s ease;
 }
 
-.search-results.active {
+.song-search-results.active {
   display: block;
   animation: slideDown 0.3s ease;
 }
@@ -99,21 +99,21 @@
   }
 }
 
-.search-results::-webkit-scrollbar {
+.song-search-results::-webkit-scrollbar {
   width: 8px;
 }
 
-.search-results::-webkit-scrollbar-track {
+.song-search-results::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 10px;
 }
 
-.search-results::-webkit-scrollbar-thumb {
+.song-search-results::-webkit-scrollbar-thumb {
   background: rgba(30, 215, 96, 0.6);
   border-radius: 10px;
 }
 
-.search-results::-webkit-scrollbar-thumb:hover {
+.song-search-results::-webkit-scrollbar-thumb:hover {
   background: rgba(30, 215, 96, 0.8);
 }
 

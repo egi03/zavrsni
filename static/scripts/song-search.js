@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('song-search');
-    const searchResults = document.getElementById('search-results');
+    const searchResults = document.getElementById('song-search-results');
     const searchSpinner = document.getElementById('search-spinner');
     
     if (!searchInput) return;
@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Get CSRF token
     function getCSRFToken() {
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return '';
     }   
     
-    // Get playlist ID
     function getPlaylistId() {
         const pathParts = window.location.pathname.split('/');
         const playlistsIndex = pathParts.indexOf('playlists');
@@ -45,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return playlistIdFromTemplate;
     }
     
-    // Search songs with debouncing
     const searchSongs = debounce(function(query) {
         if (query.length < 2) {
             searchResults.innerHTML = '';
@@ -103,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }, 500);
     
-    // Add song to playlist
     function addSongToPlaylist(songId, buttonElement) {
         const playlistId = getPlaylistId();
         
