@@ -12,7 +12,7 @@ from django.http import JsonResponse
 
 def register(request):
     if request.user.is_authenticated:
-        messages.info(request, 'You are already registered and logged in.')
+        messages.info(request, 'Već ste ulogirani.')
         return redirect('home')
         
     if request.method == 'POST':
@@ -20,7 +20,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Registration successful!')
+            messages.success(request, 'Registracija uspjela!')
             return redirect('home')
     else:
         form = UserRegistrationForm()
@@ -43,7 +43,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, 'Login successful!')
+            messages.success(request, 'Uspješno prijavljeni!')
             
             next_url = request.GET.get('next', 'accounts:profile')
             return redirect(next_url)
@@ -74,7 +74,7 @@ def profile(request):
                 user_profile.profile_picture.delete()
                 user_profile.profile_picture = None
                 user_profile.save()
-                messages.success(request, 'Profile picture removed successfully.')
+                messages.success(request, 'Profilna slika uspješno uklonjena.')
             return redirect('accounts:profile')
         
         if 'profile_picture_data' in request.POST and request.POST['profile_picture_data']:
@@ -90,13 +90,13 @@ def profile(request):
                 user_profile.profile_picture = data
                 user_profile.save()
                 
-                messages.success(request, 'Your profile picture has been updated!')
+                messages.success(request, 'Profilna slika ažurirana!')
                 return redirect('accounts:profile')
         
         elif 'profile_picture' in request.FILES:
             user_profile.profile_picture = request.FILES['profile_picture']
             user_profile.save()
-            messages.success(request, 'Your profile picture has been updated!')
+            messages.success(request, 'Profilna slika ažurirana!')
             return redirect('accounts:profile')
     
     context = {
@@ -109,7 +109,7 @@ def profile_view(request, username):
     try:
         user_profile = UserProfile.objects.get(user__username=username)
     except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
+        messages.error(request, 'Korisnik nije pronađen.')
         return redirect('accounts:profile')
     
     context = {
