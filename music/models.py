@@ -24,8 +24,27 @@ class Song(models.Model):
     liveness = models.FloatField(blank=True, null=True)
     valence = models.FloatField(blank=True, null=True)
     
+    # Last.fm data fields
+    lastfm_tags = models.JSONField(default=dict, blank=True)  # {"rock": 0.9, "indie": 0.7, ...}
+    lastfm_playcount = models.IntegerField(blank=True, null=True)
+    lastfm_listeners = models.IntegerField(blank=True, null=True)
+    lastfm_url = models.URLField(max_length=500, blank=True, null=True)
+    lastfm_updated = models.DateTimeField(blank=True, null=True)
+    
     def __str__(self):
         return f"{self.name} - {self.artist}"
+    
+    @property
+    def top_tags(self):
+        if not self.lastfm_tags:
+            return []
+        return sorted(self.lastfm_tags.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    @property
+    def primary_tag(self):
+        tags = self.top_tags
+        return tags[0][0] if tags else None
+    
     
 class Playlist(models.Model):
     name = models.CharField(max_length=200)
