@@ -54,7 +54,7 @@
           <i class="fas fa-circle-notch fa-spin"></i>
         </div>
       </div>
-      <div class="search-results" id="search-results">
+      <div class="song-search-results" id="song-search-results">
       </div>
     </div>
   {% endif %}
@@ -112,6 +112,8 @@
                 <p class="recommendation-card-artist">{{ rec.song.artist }}</p>
                 <p class="recommendation-card-album">{{ rec.song.album }}</p>
                 
+                
+                
                 <div class="recommendation-score">
                   <div class="score-bar">
                     <div class="score-fill" style="width: {{ rec.score|floatformat:0|add:0 }}%"></div>
@@ -120,10 +122,6 @@
                 </div>
                 
                 <div class="recommendation-explanation">
-                  <div class="explanation-item">
-                    <span class="explanation-label">Slični sadržaj:</span>
-                    <span class="explanation-value">{{ rec.explanation.content_audio|floatformat:1 }}</span>
-                  </div>
                   <div class="explanation-item">
                     <span class="explanation-label">Popularnost:</span>
                     <span class="explanation-value">{{ rec.explanation.popularity|floatformat:1 }}</span>
