@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 from recommendations.collaborative_recommender import PlaylistRecommender
-from recommendations.content_recommender import ContentBasedRecommender
 
 
 class Command(BaseCommand):
@@ -30,18 +29,4 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(
                     self.style.ERROR('Failed to train collaborative model')
-                )
-        
-        if model_type in ['content', 'all']:
-            self.stdout.write('Training content-based model...')
-            cb_recommender = ContentBasedRecommender()
-            history = cb_recommender.train_autoencoder()
-            
-            if history:
-                self.stdout.write(
-                    self.style.SUCCESS('Content model trained successfully!')
-                )
-            else:
-                self.stdout.write(
-                    self.style.ERROR('Failed to train content model')
                 )
