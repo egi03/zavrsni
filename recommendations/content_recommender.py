@@ -1,499 +1,271 @@
 import numpy as np
-import pandas as pd
-import tensorflow as tf
 from typing import List, Dict, Tuple, Optional
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.decomposition import PCA
-from sklearn.metrics.pairwise import cosine_similarity
-from django.db.models import Q, F, Count, Avg
+from collections import defaultdict
+from django.db.models import Q, Count
+from django.utils import timezone
 from music.models import Song, Playlist
-from spotify.utils import get_track_audio_features, get_multiple_track_audio_features
-from tensorflow.keras import layers, models
-import pickle
-import os
-from django.conf import settings
-from datetime import datetime
+from spotify.utils import get_track_audio_features
+from lastfm.utils import (
+    lastfm_api, 
+    get_track_tags_with_weights, 
+    calculate_tag_similarity,
+    enrich_song_with_lastfm_data,
+    batch_enrich_songs_with_lastfm
+)
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class ContentBasedRecommender:
+class LastFMContentRecommender:
+    
     def __init__(self):
-        self.scaler = StandardScaler()
-        self.feature_weights = {
-            'tempo': 0.20,
-            'energy': 0.25,
-            'danceability': 0.20,
-            'valence': 0.15,
-            'acousticness': 0.10,
-            'instrumentalness': 0.10,
+        self.min_tag_weight = 0.3
+        self.tag_boost_factors = {
+            'rock': 1.2,
+            'pop': 1.1,
+            'electronic': 1.2,
+            'indie': 1.3,
+            'alternative': 1.2,
+            'jazz': 1.3,
+            'classical': 1.4,
+            'metal': 1.3,
+            'hip hop': 1.2,
+            'folk': 1.3
         }
-        self.model_dir = os.path.join(settings.MEDIA_ROOT, 'models')
-        self.model_path = os.path.join(self.model_dir, 'content_model.h5')
-        os.makedirs(self.model_dir, exist_ok=True)
-        self.autoencoder = None
     
+    def ensure_song_has_tags(self, song: Song) -> bool:
+        if not song.lastfm_tags or (song.lastfm_updated and (timezone.now() - song.lastfm_updated).days > 30):
+            return enrich_song_with_lastfm_data(song)
+        return bool(song.lastfm_tags)
     
-    def get_song_features(self, song: Song) -> Optional[Dict[str, float]]:
-        """
-        Get audio features for a given song with improved error handling.
-
-        Args:
-            song (Song): The song object to get features from.
-
-        Returns:
-            Optional[Dict[str, float]]: A dictionary of audio features if available,
-            otherwise None.
-        """
-        features = {}
-        
-        feature_names = [
-            'tempo', 'energy', 'danceability', 'valence',
-            'acousticness', 'instrumentalness'
-        ]
-        
-        for feature in feature_names:
-            value = getattr(song, feature, None)
-            if value is not None:
-                features[feature] = value
-        
-        if len(features) == len(feature_names):
-            return self._enhance_features(features)
-        
-        if song.spotify_id:
-            try:
-                logger.info(f"Fetching audio features for song: {song.name} (ID: {song.spotify_id})")
-                audio_features = get_track_audio_features(song.spotify_id)
-                
-                if audio_features:
-                    updated = False
-                    for feature in feature_names:
-                        if feature not in features and feature in audio_features:
-                            features[feature] = audio_features[feature]
-                            setattr(song, feature, audio_features[feature])
-                            updated = True
-                    
-                    if updated:
-                        try:
-                            song.save()
-                            logger.info(f"Updated audio features for song: {song.name}")
-                        except Exception as e:
-                            logger.error(f"Error saving audio features for song {song.id}: {e}")
-                else:
-                    logger.warning(f"No audio features returned for song: {song.name} (ID: {song.spotify_id})")
-                    
-            except Exception as e:
-                logger.error(f"Error fetching audio features for song {song.id}: {e}")
-        
-        # Use default values for missing features
-        for feature in feature_names:
-            if feature not in features:
-                default_value = 0.5 if feature != 'instrumentalness' else 0.0
-                features[feature] = default_value
-                logger.debug(f"Using default value {default_value} for {feature} on song {song.id}")
-        
-        return self._enhance_features(features) if features else {}
-    
-    def _enhance_features(self, features: Dict[str, float]) -> Dict[str, float]:
-        """Add derived features to the feature dictionary"""
-        enhanced = features.copy()
-        
-        if 'energy' in enhanced and 'valence' in enhanced:
-            enhanced['mood'] = (enhanced['energy'] + enhanced['valence']) / 2
-        
-        if 'danceability' in enhanced and 'energy' in enhanced:
-            enhanced['party_factor'] = (enhanced['danceability'] * 0.6 + enhanced['energy'] * 0.4)
-        
-        # Normalize tempo
-        if 'tempo' in enhanced:
-            enhanced['tempo_normalized'] = (enhanced['tempo'] - 60) / 140
-            enhanced['tempo_normalized'] = max(0, min(1, enhanced['tempo_normalized']))  # Clamp to 0-1
-        
-        return enhanced
-    
-    def batch_get_song_features(self, songs: List[Song]) -> Dict[int, Dict[str, float]]:
-        """
-        Efficiently get features for multiple songs using batch API calls.
-        
-        Args:
-            songs (List[Song]): List of songs to get features for.
-            
-        Returns:
-            Dict[int, Dict[str, float]]: Dictionary mapping song IDs to their features.
-        """
-        features_map = {}
-        songs_needing_api = []
-        
-        feature_names = [
-            'tempo', 'energy', 'danceability', 'valence',
-            'acousticness', 'instrumentalness'
-        ]
-        
-        for song in songs:
-            features = {}
-            for feature in feature_names:
-                value = getattr(song, feature, None)
-                if value is not None:
-                    features[feature] = value
-            
-            if len(features) == len(feature_names):
-                features_map[song.id] = self._enhance_features(features)
-            else:
-                songs_needing_api.append(song)
-        
-        if songs_needing_api:
-            spotify_ids = [song.spotify_id for song in songs_needing_api if song.spotify_id]
-            
-            if spotify_ids:
-                try:
-                    logger.info(f"Batch fetching audio features for {len(spotify_ids)} songs")
-                    batch_features = get_multiple_track_audio_features(spotify_ids)
-                    
-                    for song in songs_needing_api:
-                        if song.spotify_id and song.spotify_id in batch_features:
-                            audio_features = batch_features[song.spotify_id]
-                            
-                            features = {}
-                            updated = False
-                            
-                            for feature in feature_names:
-                                db_value = getattr(song, feature, None)
-                                if db_value is not None:
-                                    features[feature] = db_value
-                                elif feature in audio_features:
-                                    features[feature] = audio_features[feature]
-                                    setattr(song, feature, audio_features[feature])
-                                    updated = True
-                                else:
-                                    default_value = 0.5 if feature != 'instrumentalness' else 0.0
-                                    features[feature] = default_value
-                            
-                            if updated:
-                                try:
-                                    song.save()
-                                except Exception as e:
-                                    logger.error(f"Error saving batch features for song {song.id}: {e}")
-                            
-                            features_map[song.id] = self._enhance_features(features)
-                        else:
-                            features = {}
-                            for feature in feature_names:
-                                db_value = getattr(song, feature, None)
-                                if db_value is not None:
-                                    features[feature] = db_value
-                                else:
-                                    default_value = 0.5 if feature != 'instrumentalness' else 0.0
-                                    features[feature] = default_value
-                            
-                            features_map[song.id] = self._enhance_features(features)
-                
-                except Exception as e:
-                    logger.error(f"Error in batch feature fetching: {e}")
-                    for song in songs_needing_api:
-                        if song.id not in features_map:
-                            features = {}
-                            for feature in feature_names:
-                                db_value = getattr(song, feature, None)
-                                if db_value is not None:
-                                    features[feature] = db_value
-                                else:
-                                    default_value = 0.5 if feature != 'instrumentalness' else 0.0
-                                    features[feature] = default_value
-                            
-                            features_map[song.id] = self._enhance_features(features)
-        
-        return features_map
-
-    def create_feature_vector(self, songs: List[Song]) -> Tuple[np.ndarray, List[Song]]:
-        """
-        Create feature matrix for songs using batch processing
-        
-        Args:
-            songs (List[Song]): List of Song objects.
-        
-        Returns:
-            Tuple[np.ndarray, List[Song]]: A tuple containing the feature matrix and a list of valid songs.
-        """
-        if not songs:
-            return np.array([]), []
-        
-        features_map = self.batch_get_song_features(songs)
-        
-        feature_list = []
-        valid_songs = []
-        
-        for song in songs:
-            if song.id in features_map:
-                features = features_map[song.id]
-                feature_vector = np.array([
-                    features.get('tempo_normalized', 0.5),
-                    features.get('energy', 0.5),
-                    features.get('danceability', 0.5),
-                    features.get('valence', 0.5),
-                    features.get('acousticness', 0.5),
-                    features.get('instrumentalness', 0.0)
-                ])
-                feature_list.append(feature_vector)
-                valid_songs.append(song)
-        
-        if not feature_list:
-            return np.array([]), []
-        return np.array(feature_list), valid_songs
-
-    def build_autoencoder(self, input_dim: int, encoding_dim: int = 32) -> Tuple[tf.keras.Model, tf.keras.Model]:
-        """
-        Build an autoencoder model to learn compressed representation
-        of song features
-
-        Args:
-            input_dim (int): The dimensionality of the input features.
-            encoding_dim (int, optional): The dimensionality of the encoding layer. Defaults to 32.
-        
-        Returns:
-            Tuple[tf.keras.Model, tf.keras.Model]: Autoencoder model and encoder model.
-        """
-        # Encoder
-        input_layer = layers.Input(shape=(input_dim,))
-        encoded = layers.Dense(64, activation='relu')(input_layer)
-        encoded = layers.BatchNormalization()(encoded)
-        encoded = layers.Dropout(0.2)(encoded)
-        encoded = layers.Dense(encoding_dim, activation='relu', name='encoding')(encoded)
-
-        # Decoder
-        decoded = layers.Dense(64, activation='relu')(encoded)
-        decoded = layers.BatchNormalization()(decoded)
-        decoded = layers.Dropout(0.2)(decoded)
-        decoded = layers.Dense(input_dim, activation='sigmoid')(decoded)
-        
-        # Models
-        autoencoder = models.Model(inputs=input_layer, outputs=decoded)
-        encoder = models.Model(inputs=input_layer, outputs=encoded)
-        
-        autoencoder.compile(optimizer='adam', loss='mse', metrics=['mae'])
-        
-        return autoencoder, encoder
-    
-    def train_autoencoder(self, n_epochs: int = 50):
-        logger.info("Training autoencoder")
-        
-        all_songs = Song.objects.filter(spotify_id__isnull=False)[:5000]  # Limit for training
-        
-        features, valid_songs = self.create_feature_vector(all_songs)
-        if len(features) == 0:
-            logger.warning("No valid songs found for training autoencoder.")
-            return None
-        
-        logger.info(f"Training autoencoder with {len(features)} songs")
-        
-        features_scaled = self.scaler.fit_transform(features)
-
-        self.autoencoder, self.encoder = self.build_autoencoder(input_dim=features_scaled.shape[1])
-        history = self.autoencoder.fit(
-            features_scaled, features_scaled,
-            epochs=n_epochs,
-            batch_size=32,
-            validation_split=0.1,
-            verbose=1
-        )
-        self.save_models()
-        
-        return history
-    
-    def save_models(self):
-        autoencoder_path = os.path.join(self.model_dir, 'autoencoder.keras')
-        self.autoencoder.save(autoencoder_path)
-        
-        encoder_path = os.path.join(self.model_dir, 'encoder.keras')
-        self.encoder.save(encoder_path)
-
-        scaler_path = os.path.join(self.model_dir, 'scaler.pkl')
-        with open(scaler_path, 'wb') as f:
-            pickle.dump(self.scaler, f)
-    
-    def load_models(self) -> bool:
-        """Load pre-trained models from disk.
-
-        Returns:
-            bool: True if models are loaded successfully, False otherwise.
-        """
-        try:
-            autoencoder_path = os.path.join(self.model_dir, 'autoencoder.keras')
-            self.autoencoder = tf.keras.models.load_model(autoencoder_path)
-            
-            encoder_path = os.path.join(self.model_dir, 'encoder.keras')
-            self.encoder = tf.keras.models.load_model(encoder_path)
-            
-            scaler_path = os.path.join(self.model_dir, 'scaler.pkl')
-            with open(scaler_path, 'rb') as f:
-                self.scaler = pickle.load(f)
-            return True
-        except Exception as e:
-            logger.error(f"Error loading models: {e}")
-            return False
-     
-    def calculate_playlist_profile(self, playlist: Playlist) -> Dict[str, float]:
-        """
-        Calculate the average and diversity of audio features for a given playlist.
-
-        Args:
-            playlist (Playlist): The playlist to profile.
-
-        Returns:
-            Dict[str, float]: Averages of features and their diversity
-        """
+    def get_playlist_tag_profile(self, playlist: Playlist) -> Dict[str, float]:
+        """Calculate aggregated tag profile for a playlist"""
         songs = list(playlist.songs.all())
         if not songs:
             return {}
         
-        features, valid_songs = self.create_feature_vector(songs)
-        if len(features) == 0:
+        songs_with_tags = []
+        for song in songs:
+            if self.ensure_song_has_tags(song) and song.lastfm_tags:
+                songs_with_tags.append(song)
+        
+        if not songs_with_tags:
+            logger.warning(f"No songs with tags in playlist {playlist.id}")
             return {}
         
-        # Calculate weighted averages
-        avg_features = np.mean(features, axis=0)
+        tag_scores = defaultdict(float)
+        tag_counts = defaultdict(int)
         
-        feature_names = [
-            'tempo_normalized', 'energy', 'danceability', 
-            'valence', 'acousticness', 'instrumentalness'
-        ]
+        for song in songs_with_tags:
+            for tag, weight in song.lastfm_tags.items():
+                if weight >= self.min_tag_weight:
+                    tag_scores[tag] += weight
+                    tag_counts[tag] += 1
         
-        profile = {name: float(value) for name, value in zip(feature_names, avg_features)}
+        avg_tag_profile = {}
+        for tag, total_score in tag_scores.items():
+            avg_weight = total_score / len(songs_with_tags)
+            
+            frequency_boost = min(tag_counts[tag] / len(songs_with_tags), 1.0)
+            avg_tag_profile[tag] = avg_weight * (0.7 + 0.3 * frequency_boost)
         
-        # Calculate diversity
-        if len(features) > 1:
-            diversity = np.std(features, axis=0)
-            for i, name in enumerate(feature_names):
-                profile[f'{name}_diversity'] = float(diversity[i])
-                
-        return profile
+        total_weight = sum(avg_tag_profile.values())
+        if total_weight > 0:
+            avg_tag_profile = {tag: weight/total_weight 
+                              for tag, weight in avg_tag_profile.items()}
+        
+        return dict(sorted(avg_tag_profile.items(), 
+                          key=lambda x: x[1], reverse=True)[:20])
     
-    def recommend_by_audio_features(self, playlist: Playlist, n_recommendations: int = 10) -> List[Tuple[Song, float]]:
-        """
-        Recommend songs based on audio features similarity.
-
-        Args:
-            playlist (Playlist): The playlist to base recommendations on.
-            n_recommendations (int): Number of songs to recommend.
-
-        Returns:
-            List[Tuple[Song, float]]: List of recommended songs with similarity scores.
-        """
-        playlist_profile = self.calculate_playlist_profile(playlist)
+    def calculate_song_playlist_similarity(self, song: Song, playlist_profile: Dict[str, float]) -> float:
+        if not song.lastfm_tags or not playlist_profile:
+            return 0.0
+        
+        similarity = 0.0
+        matched_tags = 0
+        
+        for tag, playlist_weight in playlist_profile.items():
+            if tag in song.lastfm_tags:
+                song_weight = song.lastfm_tags[tag]
+                tag_similarity = min(song_weight, playlist_weight) / max(song_weight, playlist_weight)
+                
+                boost = self.tag_boost_factors.get(tag, 1.0)
+                
+                similarity += tag_similarity * playlist_weight * boost
+                matched_tags += 1
+        
+        if matched_tags < 2:
+            similarity *= 0.5
+        
+        return min(similarity, 1.0)
+    
+    def recommend_by_tags(self, playlist: Playlist, n_recommendations: int = 20) -> List[Tuple[Song, float]]:
+        logger.info(f"Generating tag-based recommendations for playlist {playlist.id}")
+        
+        playlist_profile = self.get_playlist_tag_profile(playlist)
         if not playlist_profile:
-            logger.warning("No valid features found for playlist.")
+            logger.warning(f"Could not generate tag profile for playlist {playlist.id}")
             return []
         
-        existing_ids = set(playlist.songs.values_list('id', flat=True))
+        logger.info(f"Playlist tag profile: {list(playlist_profile.items())[:5]}")
         
-
-        candidate_songs = list(Song.objects.exclude(id__in=existing_ids)
-                              .filter(spotify_id__isnull=False)[:1000])  # Limit for performance
+        existing_song_ids = set(playlist.songs.values_list('id', flat=True))
+        existing_artists = set(playlist.songs.values_list('artist', flat=True))
         
-        if not candidate_songs:
-            logger.warning("No candidate songs found for recommendations.")
-            return []
-        
-        # Batch get features for all candidates
-        features_map = self.batch_get_song_features(candidate_songs)
-        
-        similarities = []
-        
-        playlist_vector = np.array([
-            playlist_profile.get('tempo_normalized', 0.5),
-            playlist_profile.get('energy', 0.5),
-            playlist_profile.get('danceability', 0.5),
-            playlist_profile.get('valence', 0.5),
-            playlist_profile.get('acousticness', 0.5),
-            playlist_profile.get('instrumentalness', 0.0)
-        ])
-        
-        playlist_artists = set(playlist.songs.values_list('artist', flat=True))
-        
-        for song in candidate_songs:
-            if song.id not in features_map:
-                continue
-                
-            features = features_map[song.id]
-            song_vector = np.array([
-                features.get('tempo_normalized', 0.5),
-                features.get('energy', 0.5),
-                features.get('danceability', 0.5),
-                features.get('valence', 0.5),
-                features.get('acousticness', 0.5),
-                features.get('instrumentalness', 0.0)
-            ])
-
-            # Weighted cosine similarity
-            weights = np.array(list(self.feature_weights.values()))
-            weighted_playlist = playlist_vector * weights
-            weighted_song = song_vector * weights
-            
-            similarity = cosine_similarity(weighted_playlist.reshape(1, -1), weighted_song.reshape(1, -1))[0][0]
-            
-            # Artist boost
-            if song.artist in playlist_artists:
-                similarity *= 1.1
-            
-            similarities.append((song, float(similarity)))
-
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        
-        return similarities[:n_recommendations]
-    
-    def recommend_by_mood(self, playlist: Playlist, n_recommendations: int = 10) -> List[Tuple[Song, float]]:
-        """
-        Recommend songs based on mood profile of the playlist.
-
-        Args:
-            playlist (Playlist): The playlist to base recommendations on.
-            n_recommendations (int): Number of songs to recommend.
-
-        Returns:
-            List[Tuple[Song, float]]: List of recommended songs with their similarity scores.
-        """
-        
-        profile = self.calculate_playlist_profile(playlist)
-        if not profile:
-            logger.warning("No valid features found for playlist.")
-            return []
-        
-        energy = profile.get('energy', 0.5)
-        valence = profile.get('valence', 0.5)
-        
-        if energy > 0.6 and valence > 0.6:
-            mood = 'happy'
-            mood_query = Q(energy__gte=0.5, valence__gte=0.5)
-        elif energy > 0.6 and valence <= 0.4:
-            mood = 'angry'
-            mood_query = Q(energy__gte=0.5, valence__lte=0.5)
-        elif energy <= 0.4 and valence <= 0.4:
-            mood = 'sad'
-            mood_query = Q(energy__lte=0.5, valence__lte=0.5)
-        else:
-            mood = 'relaxed'
-            mood_query = Q(energy__lte=0.5, valence__gte=0.5)
-            
-        existing_ids = set(playlist.songs.values_list('id', flat=True))
-        matching_songs = list(Song.objects.filter(mood_query)
-                             .exclude(id__in=existing_ids)
-                             .filter(spotify_id__isnull=False)
-                             .order_by('-popularity')[:n_recommendations * 2])
+        candidates = Song.objects.exclude(
+            id__in=existing_song_ids
+        ).exclude(
+            lastfm_tags={}
+        )[:2000]
         
         recommendations = []
-        features_map = self.batch_get_song_features(matching_songs)
         
-        for song in matching_songs:
-            if song.id not in features_map:
+        for song in candidates:
+            if not self.ensure_song_has_tags(song):
                 continue
                 
-            features = features_map[song.id]
-            mood_distance = (
-                abs(features.get('energy', 0.5) - energy) +
-                abs(features.get('valence', 0.5) - valence)
-            )
-            score = 1.0 - (mood_distance / 2.0)
-            recommendations.append((song, float(score)))
-
+            similarity = self.calculate_song_playlist_similarity(song, playlist_profile)
+            
+            if song.artist in existing_artists:
+                similarity *= 1.15
+            
+            # Consider popularity (normalize to 0-1)
+            if song.lastfm_listeners:
+                popularity_score = min(song.lastfm_listeners / 1000000, 1.0)  # Normalize by 1M listeners
+                # Blend similarity and popularity
+                final_score = similarity * 0.8 + popularity_score * 0.2
+            else:
+                final_score = similarity * 0.9  # Slight penalty for unknown popularity
+            
+            if final_score > 0.3:  # Minimum threshold
+                recommendations.append((song, final_score))
+        
         recommendations.sort(key=lambda x: x[1], reverse=True)
         return recommendations[:n_recommendations]
+    
+    def find_similar_by_lastfm_api(self, playlist: Playlist, n_recommendations: int = 20) -> List[Tuple[Song, float]]:
+        songs = list(playlist.songs.all())
+        if not songs:
+            return []
+        
+        existing_song_ids = set(playlist.songs.values_list('id', flat=True))
+        similar_tracks_data = defaultdict(float)
+        
+        for song in songs[:10]:
+            similar_tracks = lastfm_api.get_similar_tracks(song.artist, song.name, limit=30)
+            
+            for i, similar in enumerate(similar_tracks):
+                if not similar or not isinstance(similar, dict):
+                    continue
+                    
+                artist = similar.get('artist', {}).get('name', '')
+                track_name = similar.get('name', '')
+                
+                if not artist or not track_name:
+                    continue
+                
+                # Score based on position (higher position = more similar)
+                position_score = 1.0 - (i / len(similar_tracks))
+                match_score = float(similar.get('match', 0))
+                
+                key = (artist.lower(), track_name.lower())
+                similar_tracks_data[key] += position_score * match_score
+        
+        # Find these tracks in our database
+        recommendations = []
+        
+        for (artist, track_name), score in similar_tracks_data.items():
+            # Try to find the song in our database
+            songs = Song.objects.filter(
+                artist__iexact=artist,
+                name__iexact=track_name
+            ).exclude(id__in=existing_song_ids)
+            
+            if songs.exists():
+                song = songs.first()
+                # Normalize score
+                normalized_score = min(score / len(songs), 1.0)
+                recommendations.append((song, normalized_score))
+        
+        recommendations.sort(key=lambda x: x[1], reverse=True)
+        return recommendations[:n_recommendations]
+    
+    def get_diverse_recommendations(self, playlist: Playlist, n_recommendations: int = 20) -> List[Tuple[Song, float]]:
+        """Combine tag-based and API-based recommendations for diversity"""
+        # Get recommendations from both methods
+        tag_recs = self.recommend_by_tags(playlist, n_recommendations)
+        api_recs = self.find_similar_by_lastfm_api(playlist, n_recommendations)
+        
+        # Combine with weights
+        combined = {}
+        
+        # Add tag-based recommendations
+        for song, score in tag_recs:
+            combined[song.id] = (song, score * 0.6)  # 60% weight for tag-based
+        
+        # Add or update with API-based recommendations  
+        for song, score in api_recs:
+            if song.id in combined:
+                # Average the scores if song appears in both
+                existing_song, existing_score = combined[song.id]
+                combined[song.id] = (song, (existing_score + score * 0.4) / 2)
+            else:
+                combined[song.id] = (song, score * 0.4)  # 40% weight for API-based
+        
+        # Sort by combined score
+        recommendations = list(combined.values())
+        recommendations.sort(key=lambda x: x[1], reverse=True)
+        
+        return recommendations[:n_recommendations]
+    
+    def explain_recommendation(self, song: Song, playlist: Playlist) -> Dict[str, any]:
+        """Explain why a song was recommended"""
+        playlist_profile = self.get_playlist_tag_profile(playlist)
+        
+        explanation = {
+            'common_tags': [],
+            'tag_similarity': 0.0,
+            'artist_in_playlist': False,
+            'similar_to_songs': []
+        }
+        
+        # Find common tags
+        if song.lastfm_tags and playlist_profile:
+            for tag in song.lastfm_tags:
+                if tag in playlist_profile:
+                    explanation['common_tags'].append({
+                        'tag': tag,
+                        'song_weight': song.lastfm_tags[tag],
+                        'playlist_weight': playlist_profile[tag]
+                    })
+            
+            explanation['tag_similarity'] = self.calculate_song_playlist_similarity(
+                song, playlist_profile
+            )
+        
+        # Check if artist is in playlist
+        playlist_artists = set(playlist.songs.values_list('artist', flat=True))
+        explanation['artist_in_playlist'] = song.artist in playlist_artists
+        
+        # Find which songs in playlist are most similar
+        playlist_songs = playlist.songs.all()
+        for playlist_song in playlist_songs:
+            if playlist_song.lastfm_tags:
+                similarity = calculate_tag_similarity(
+                    song.lastfm_tags or {},
+                    playlist_song.lastfm_tags
+                )
+                if similarity > 0.5:
+                    explanation['similar_to_songs'].append({
+                        'song': f"{playlist_song.name} - {playlist_song.artist}",
+                        'similarity': similarity
+                    })
+        
+        explanation['similar_to_songs'].sort(
+            key=lambda x: x['similarity'], 
+            reverse=True
+        )
+        explanation['similar_to_songs'] = explanation['similar_to_songs'][:3]
+        
+        return explanation
