@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentSongCount = getCurrentSongCount();
     const MINIMUM_SONGS_FOR_RECOMMENDATIONS = 3;
     
-    
     if (shouldShowRecommendations()) {
         initializeRecommendations();
     } else {
@@ -80,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const hasRecommendationsLoading = document.getElementById('recommendations-loading');
         if (hasRecommendationsLoading) {
-            setTimeout(() => { generateInitialRecommendations(); }, 1000);
+            setTimeout(() => { generateInitialRecommendations(); }, 2000);
         }
         
         const strategySelect = document.getElementById('recommendation-strategy');
@@ -107,13 +106,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const strategySelectElement = document.getElementById('recommendation-strategy');
         const strategy = strategySelectElement ? strategySelectElement.value : 'balanced';
         
-        
         startLoadingSteps();
         
         const timeoutId = setTimeout(() => {
-            console.error('timed out');
-            location.reload(); // timeout 
-        }, 30000);
+            showNotification('Preporuke se generiram u pozadini. Molimo pokušajte ponovno za minutu.', 'info', 5000);
+        }, 60000);
         
         fetch(`/playlists/${playlistId}/recommendations/refresh/`, {
             method: 'POST',
@@ -125,21 +122,40 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             return response.json();
         })
         .then(data => {
             if (data.success) {
                 completeLoadingSteps();
-                if (data.message) showNotification(data.message, 'info');
-                setTimeout(() => { updateRecommendationsDisplay(data.recommendations); }, 1000);
+                
+                if (data.message) {
+                    showNotification(data.message, 'info');
+                }
+                
+                if (data.recommendations && Array.isArray(data.recommendations)) {
+                    setTimeout(() => { 
+                        updateRecommendationsDisplay(data.recommendations); 
+                        showNotification('Preporuke su spremne!', 'success');
+                    }, 1500);
+                } else {
+                    updateRecommendationsDisplay([]);
+                }
             } else {
                 throw new Error(data.error || 'Failed to generate recommendations');
             }
         })
         .catch(error => {
             clearTimeout(timeoutId);
-            location.reload();
+            showNotification('Greška pri generiranju preporuka. Pokušajte osvježiti stranicu.', 'error', 5000);
+            
+            const loadingElement = document.getElementById('recommendations-loading');
+            if (loadingElement) {
+                updateRecommendationsDisplay([]);
+            }
         });
     }
     
@@ -163,13 +179,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const strategySelectElement = document.getElementById('recommendation-strategy');
         const strategy = strategySelectElement ? strategySelectElement.value : 'balanced';
         
-        
         if (refreshBtnElement) refreshBtnElement.classList.add('loading');
         showRefreshSkeletonLoading();
         
         const timeoutId = setTimeout(() => {
-            location.reload();
-        }, 15000);
+            showNotification('Osvježavanje preporuka je trajalo predugo. Pokušajte ponovno.', 'error');
+            if (refreshBtnElement) refreshBtnElement.classList.remove('loading');
+        }, 30000);
         
         fetch(`/playlists/${playlistId}/recommendations/refresh/`, {
             method: 'POST',
@@ -188,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 completeRefreshSkeletonLoading();
                 if (data.message) showNotification(data.message, 'info');
+                
                 setTimeout(() => {
                     updateRecommendationsDisplay(data.recommendations);
                     showNotification('Preporuke su osvježene!', 'success');
@@ -199,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             clearTimeout(timeoutId);
             showNotification('Greška pri osvježavanju preporuka.', 'error');
-            location.reload();
         })
         .finally(() => {
             if (refreshBtnElement) refreshBtnElement.classList.remove('loading');
@@ -325,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function completeRefreshSkeletonLoading() {
-        
         const steps = document.querySelectorAll('.refresh-loading-steps .loading-step');
         steps.forEach((step, index) => {
             setTimeout(() => {
@@ -348,9 +363,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateRecommendationsDisplay(recommendations) {
         const currentRecommendationsContent = document.getElementById('recommendations-content');
-        if (!currentRecommendationsContent) return;
+        if (!currentRecommendationsContent) {
+            return;
+        }
 
         const wasRefreshLoading = !!document.getElementById('recommendations-refresh-loading');
+        const wasInitialLoading = !!document.getElementById('recommendations-loading');
 
         if (!recommendations || recommendations.length === 0) {
             const emptyHTML = `
@@ -363,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            if (wasRefreshLoading) {
+            if (wasRefreshLoading || wasInitialLoading) {
                 currentRecommendationsContent.style.opacity = '0';
                 setTimeout(() => {
                     currentRecommendationsContent.innerHTML = emptyHTML;
@@ -381,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        if (wasRefreshLoading) {
+        if (wasRefreshLoading || wasInitialLoading) {
             currentRecommendationsContent.style.opacity = '0';
             currentRecommendationsContent.style.transform = 'scale(0.95)';
             
@@ -436,13 +454,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createRecommendationCardHtml(rec) {
-        const scorePercentage = Math.round(rec.score * 100);
+        if (!rec || !rec.song) {
+            return '';
+        }
+        
+        const scorePercentage = Math.round((rec.score || 0) * 100);
         
         return `
-            <div class="recommendation-card" data-song-id="${rec.song.id}">
+            <div class="recommendation-card" data-song-id="${rec.song.id || ''}">
                 <div class="recommendation-card-image-container">
                     <img src="${rec.song.photo || '/static/images/default-album.png'}" 
-                         alt="${escapeHtml(rec.song.name)} cover" 
+                         alt="${escapeHtml(rec.song.name || 'Unknown')} cover" 
                          class="recommendation-card-image">
                     <div class="recommendation-card-overlay">
                         <button class="add-recommendation-btn" title="Dodaj u plejlistu">
@@ -452,26 +474,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="recommendation-card-content">
-                    <h4 class="recommendation-card-title">${escapeHtml(rec.song.name)}</h4>
-                    <p class="recommendation-card-artist">${escapeHtml(rec.song.artist)}</p>
-                    <p class="recommendation-card-album">${escapeHtml(rec.song.album)}</p>
+                    <h4 class="recommendation-card-title">${escapeHtml(rec.song.name || 'Unknown')}</h4>
+                    <p class="recommendation-card-artist">${escapeHtml(rec.song.artist || 'Unknown Artist')}</p>
+                    <p class="recommendation-card-album">${escapeHtml(rec.song.album || 'Unknown Album')}</p>
                     
                     <div class="recommendation-score">
                         <div class="score-bar">
                             <div class="score-fill" style="width: ${scorePercentage}%"></div>
                         </div>
-                        <span class="score-text">${rec.score.toFixed(1)}</span>
+                        <span class="score-text">${(rec.score || 0).toFixed(1)}</span>
                     </div>
                     
                     <div class="recommendation-explanation">
+                        ${rec.explanation && rec.explanation.content_audio !== undefined ? `
                         <div class="explanation-item">
                             <span class="explanation-label">Slični sadržaj:</span>
                             <span class="explanation-value">${rec.explanation.content_audio.toFixed(1)}</span>
                         </div>
+                        ` : ''}
+                        ${rec.explanation && rec.explanation.popularity !== undefined ? `
                         <div class="explanation-item">
                             <span class="explanation-label">Popularnost:</span>
                             <span class="explanation-value">${rec.explanation.popularity.toFixed(1)}</span>
                         </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
