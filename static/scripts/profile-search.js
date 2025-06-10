@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = 'hidden';
     });
 
-    // Closing the search overlay
     searchClose.addEventListener('click', closeSearch);
 
     searchOverlay.addEventListener('click', function(event) {
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchResults.innerHTML = '';
     }
 
-    // Search functionality
     searchInput.addEventListener('input', function() {
         const query = searchInput.value.trim();
         

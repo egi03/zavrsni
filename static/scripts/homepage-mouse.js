@@ -100,9 +100,9 @@ function initSimpleInteractions() {
     const cursor = document.querySelector('.simple-cursor');
     
     const interactiveSelectors = [
-        '.hero-cta-enhanced',
-        '.cta-button-enhanced',
-        '.feature-card-enhanced',
+        '.hero-cta-primary',
+        '.cta-button-primary',
+        '.feature-card-primary',
         'button',
         'a:not(.no-cursor)',
         '.btn'

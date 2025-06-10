@@ -29,9 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
   passwordField.parentNode.insertBefore(requirementsContainer, passwordField.nextSibling);
   
   const requirements = [
-    { id: 'length', text: 'At least 8 characters', regex: /.{8,}/ },
-    { id: 'lowercase', text: 'At least one lowercase letter', regex: /[a-z]/ },
-    { id: 'number', text: 'At least one number', regex: /[0-9]/ }
+    { id: 'length', text: 'Najmanje 8 znakova', regex: /.{8,}/ },
+    { id: 'lowercase', text: 'Najmanje jedno malo slovo', regex: /[a-z]/ },
+    { id: 'number', text: 'Najmanje 1 broj', regex: /[0-9]/ }
   ];
   
   let html = '';
@@ -49,14 +49,13 @@ document.addEventListener('DOMContentLoaded', function() {
   if (confirmPasswordField) {
     html += `<div id="req-match" style="margin-top: 10px; padding-top: 5px; border-top: 1px solid #333; display: none;">
               <span class="req-icon" style="color: #dc3545; margin-right: 8px; font-weight: bold;">✕</span> 
-              <span style="color: #aaa;">Passwords match</span>
+              <span style="color: #aaa;">Zaporke su jednake</span>
             </div>`;
   }
   
   requirementsContainer.innerHTML = html;
   
   function checkPasswordStrength(password) {
-    console.log("Checking password strength");
     
     requirements.forEach(req => {
       const reqElement = document.getElementById(`req-${req.id}`);

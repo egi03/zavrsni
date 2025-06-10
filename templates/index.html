@@ -4,229 +4,232 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'styles/homepage.css' %}">
+<link rel="stylesheet" href="{% static 'styles/homepage-mouse.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="cursor"></div>
-<div class="cursor-outline"></div>
-<div class="cursor-text"></div>
-
-<div class="hero-enhanced interactive-glow">
-  <div class="floating-element floating-element-1 scale-in delay-1"></div>
-  <div class="floating-element floating-element-2 scale-in delay-2"></div>
-  <div class="floating-element floating-element-3 scale-in delay-3"></div>
-  <div class="floating-element floating-element-4 scale-in delay-4"></div>
+<div class="hero-primary">
+  <div class="floating-element floating-element-1"></div>
+  <div class="floating-element floating-element-2"></div>
+  <div class="floating-element floating-element-3"></div>
+  <div class="floating-element floating-element-4"></div>
   
-  <div class="hero-content-enhanced">
-    <div class="hero-badge slide-in-left magnetic" data-cursor-text="AI Powered">
+  <div class="hero-content-primary">
+    <div class="hero-badge animate-on-scroll magnetic" data-tooltip="AI pokretana glazba">
       <i class="fas fa-sparkles"></i>
-      AI-Powered
+    AI-powerd
     </div>
     
-    <h1 class="hero-title-enhanced text-reveal">
-      <span class="green-text">AI-driven</span> <span></span><br>
-      <span class="gradient-text">preporuke glazbe</span>
+    <h1 class="hero-title-primary animate-on-scroll">
+      <span class="green-text">Preporuke</span><br>
+      <span class="gradient-text">pjesama</span>
     </h1>
     
-    <p class="hero-subtitle-enhanced blur-in delay-2">
-      Naš napredni AI sustav analizira vaš ukus i preporuča vam pjesme koje će vas oduševiti. Pristupite katalogu od preko 100 milijuna pjesama.
+    <p class="hero-subtitle-primary animate-on-scroll">
+      Naš napredni AI sustav analizira vaš ukus i preporuča vam pjesme koje ćete obožavati. 
     </p>
     
-    <a href="#" class="hero-cta-enhanced scale-in delay-4 magnetic" data-cursor-text="Klikni za početak!">
+    <a href="{% url 'accounts:register' %}" class="hero-cta-primary animate-on-scroll magnetic glow-on-hover" 
+       data-tooltip="Počnite svoje putovanje!">
       <i class="fas fa-play"></i>
-      POKRENI
+      POČNITE
     </a>
   </div>
   
-  <div class="scroll-indicator-enhanced fade-in delay-5 magnetic" data-cursor-text="Skrolaj dolje">
+  <div class="scroll-indicator-primary animate-on-scroll magnetic" data-tooltip="Skrolajte za istraživanje">
     <i class="fas fa-chevron-down"></i>
   </div>
 </div>
 
-<section class="section-enhanced bg-gradient-1 interactive-glow">
-  <div class="section-container-enhanced">
-    <div class="progressive-reveal">
-      <div class="reveal-item">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; text-align: center; margin: 2rem 0;">
-          <div class="scale-in delay-1 magnetic" data-cursor-text="Ogromna biblioteka">
-            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;" class="counter">100M+</h3>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnih pjesama</p>
-          </div>
-          <div class="scale-in delay-2 magnetic" data-cursor-text="Umjetna inteligencija">
-            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">AI</h3>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">Napredni algoritmi</p>
-          </div>
-          <div class="scale-in delay-3 magnetic" data-cursor-text="Uvijek dostupno">
-            <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">24/7</h3>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnost</p>
-          </div>
+<section class="section-primary">
+  <div class="section-container-primary">
+    <div class="animate-on-scroll">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; text-align: center; margin: 2rem 0;">
+        <div class="interactive-element magnetic" data-tooltip="Ogromna glazbena biblioteka">
+          <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">100.000.000</h3>
+          <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnih pjesama</p>
+        </div>
+        <div class="interactive-element magnetic" data-tooltip="Napredni AI algoritmi">
+          <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">AI</h3>
+          <p style="color: var(--text-secondary); font-size: 1.1rem;">Pametni algoritmi</p>
+        </div>
+        <div class="interactive-element magnetic" data-tooltip="Uvijek dostupno">
+          <h3 style="font-size: 3rem; font-weight: 900; color: var(--spotify-green); margin-bottom: 0.5rem;">24/7</h3>
+          <p style="color: var(--text-secondary); font-size: 1.1rem;">Dostupnost</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section-enhanced bg-gradient-2 interactive-glow">
-  <div class="section-container-enhanced">
-    <div class="section-header-enhanced animate-on-scroll">
-      <div class="section-badge slide-in-left magnetic" data-cursor-text="Prvi korak">01 - Kako funkcionira</div>
-      <h2 class="section-title-enhanced text-reveal">
-        <span>Dobrodošli!</span>
+<section class="section-primary">
+  <div class="section-container-primary">
+    <div class="section-header-primary">
+      <div class="section-badge animate-on-scroll magnetic" data-tooltip="Prvi korak">01 - Kako funkcionira</div>
+      <h2 class="section-title-primary animate-on-scroll">
+        Dobrodošli!
       </h2>
-      <p class="section-description-enhanced blur-in delay-2">
-        Naš inteligentni sustav za prijedlog glazbe će prepoznati vaš ukus i predložiti vam pjesme u kojima ćete uživati
+      <p class="section-description-primary animate-on-scroll">
+        Naš inteligentni sustav za preporučivanje glazbe učit će vaš ukus i predložiti pjesme u kojima ćete uživati
       </p>
     </div>
     
     <div style="display: flex; justify-content: center; align-items: center; margin: 4rem 0; flex-wrap: wrap; gap: 2rem;">
-      <div class="slide-in-left delay-1 magnetic" data-cursor-text="Prvi korak" style="display: flex; align-items: center; gap: 1rem;">
+      <div class="animate-on-scroll magnetic interactive-element" data-tooltip="Odaberite svoje favorite" 
+           style="display: flex; align-items: center; gap: 1rem;">
         <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">1</div>
-        <span style="color: var(--text-secondary);">Odabir</span>
+        <span style="color: var(--text-secondary);">Odaberite</span>
       </div>
       
-      <div class="fade-in delay-2" style="color: var(--spotify-green); font-size: 2rem;">
+      <div class="animate-on-scroll" style="color: var(--spotify-green); font-size: 2rem;">
         <i class="fas fa-arrow-right"></i>
       </div>
       
-      <div class="slide-in-left delay-3 magnetic" data-cursor-text="Drugi korak" style="display: flex; align-items: center; gap: 1rem;">
+      <div class="animate-on-scroll magnetic interactive-element" data-tooltip="AI obrađuje vaš ukus" 
+           style="display: flex; align-items: center; gap: 1rem;">
         <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">2</div>
-        <span style="color: var(--text-secondary);">Analiza</span>
+        <span style="color: var(--text-secondary);">Analiziraj</span>
       </div>
       
-      <div class="fade-in delay-4" style="color: var(--spotify-green); font-size: 2rem;">
+      <div class="animate-on-scroll" style="color: var(--spotify-green); font-size: 2rem;">
         <i class="fas fa-arrow-right"></i>
       </div>
       
-      <div class="slide-in-left delay-5 magnetic" data-cursor-text="Treći korak" style="display: flex; align-items: center; gap: 1rem;">
+      <div class="animate-on-scroll magnetic interactive-element" data-tooltip="Dobijte personalizirane preporuke" 
+           style="display: flex; align-items: center; gap: 1rem;">
         <div style="width: 60px; height: 60px; background: var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: bold; font-size: 1.5rem;">3</div>
-        <span style="color: var(--text-secondary);">Rezultati</span>
+        <span style="color: var(--text-secondary);">Uživajte</span>
       </div>
     </div>
     
-    <div class="features-grid-enhanced">
-      <div class="feature-card-enhanced slide-in-left delay-1 interactive-glow magnetic" data-cursor-text="Označite pjesme">
-        <div class="feature-icon-enhanced icon-1 rotate-in delay-1">
+    <div class="features-grid-primary">
+      <div class="feature-card-primary animate-on-scroll magnetic interactive-element glow-on-hover" 
+           data-tooltip="Označite pjesme koje vam se sviđaju">
+        <div class="feature-icon-primary icon-1">
           <i class="fas fa-heart"></i>
         </div>
-        <h3 class="text-reveal delay-2">
-          <span>Odabir</span>
-        </h3>
-        <p class="fade-in delay-3">Započnite sa označavanjem pjesama sa "sviđa mi se" i pomognite našem algoritmu da upozna vaš ukus u glazbi.</p>
+        <h3>Odabir</h3>
+        <p>Kreirajte playlistu i dodajte svoje omiljene pjesme u nju.</p>
       </div>
       
-      <div class="feature-card-enhanced animate-on-scroll delay-2 interactive-glow magnetic" data-cursor-text="AI analiza">
-        <div class="feature-icon-enhanced icon-2 rotate-in delay-2">
+      <div class="feature-card-primary animate-on-scroll magnetic interactive-element glow-on-hover" 
+           data-tooltip="Napredna AI analiza">
+        <div class="feature-icon-primary icon-2">
           <i class="fas fa-brain"></i>
         </div>
-        <h3 class="text-reveal delay-3">
-          <span>Analiza</span>
-        </h3>
-        <p class="fade-in delay-4">Naš model analizira vaš odabir i shvaća vaš unikatni ukus kroz napredne algoritme strojnog učenja.</p>
+        <h3>Analiza</h3>
+        <p>Naš model analizira vaš jedinstveni ukus kroz napredne algoritme strojnog učenja.</p>
       </div>
       
-      <div class="feature-card-enhanced slide-in-right delay-3 interactive-glow magnetic" data-cursor-text="Vaša playlista">
-        <div class="feature-icon-enhanced icon-3 rotate-in delay-3">
+      <div class="feature-card-primary animate-on-scroll magnetic interactive-element glow-on-hover" 
+           data-tooltip="Vaša personalizirana playlista">
+        <div class="feature-icon-primary icon-3">
           <i class="fas fa-music"></i>
         </div>
-        <h3 class="text-reveal delay-4">
-          <span>Rezultati</span>
-        </h3>
-        <p class="fade-in delay-5">Vaša personalizirana playlista je spremna! Otkrijte nove pjesme koje savršeno odgovaraju vašem ukusu.</p>
+        <h3>Rezultati</h3>
+        <p>Vaša personalizirana playlista je spremna! Otkrijte nove pjesme koje savršeno odgovaraju vašem ukusu.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section-enhanced bg-gradient-3 interactive-glow">
-  <div class="section-container-enhanced">
-    <div class="section-header-enhanced">
-      <div class="section-badge slide-in-right magnetic" data-cursor-text="Naše prednosti">02 - Značajke</div>
-      <h2 class="section-title-enhanced text-reveal">
-        <span>Zašto</span> <span>odabrati</span> <span>nas?</span>
+<section class="section-primary">
+  <div class="section-container-primary">
+    <div class="section-header-primary">
+      <div class="section-badge animate-on-scroll magnetic" data-tooltip="Naše prednosti">02 - Značajke</div>
+      <h2 class="section-title-primary animate-on-scroll">
+        Prednosti!
       </h2>
-      <p class="section-description-enhanced blur-in delay-2">
-        Napredne funkcionalnosti koje čine naš sustav jedinstvenim
+      <p class="section-description-primary animate-on-scroll">
+        Napredne značajke koje čine ovaj sustav jedinstvenim
       </p>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem; margin-top: 4rem;">
-      <div class="slide-in-left delay-1 magnetic interactive-glow" data-cursor-text="Prilagodi se vama" style="text-align: center; padding: 2rem;">
-        <div class="scale-in delay-2" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+      <div class="animate-on-scroll magnetic interactive-element glow-on-hover" data-tooltip="Prilagođava se vama" 
+           style="text-align: center; padding: 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
           <i class="fas fa-magic"></i>
         </div>
-        <h3 class="text-reveal delay-3" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
-          <span>Personalizacija</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          Personalizacija
         </h3>
-        <p class="fade-in delay-4" style="color: var(--text-secondary); line-height: 1.6;">
+        <p style="color: var(--text-secondary); line-height: 1.6;">
           Algoritam koji se prilagođava vašem ukusu i postaje bolji s vremenom
         </p>
       </div>
       
-      <div class="slide-in-right delay-2 magnetic interactive-glow" data-cursor-text="Brže od munje" style="text-align: center; padding: 2rem;">
-        <div class="scale-in delay-3" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #a55eea, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+      <div class="animate-on-scroll magnetic interactive-element glow-on-hover" data-tooltip="Munjevito brz" 
+           style="text-align: center; padding: 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #a55eea, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
           <i class="fas fa-bolt"></i>
         </div>
-        <h3 class="text-reveal delay-4" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
-          <span>Brzina</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          Brzina
         </h3>
-        <p class="fade-in delay-5" style="color: var(--text-secondary); line-height: 1.6;">
-          Trenutne preporuke bez čekanja - otkrijte novu glazbu u sekundi
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+          Trenutne preporuke bez čekanja - otkrijte novu glazbu u trnutku
         </p>
       </div>
       
-      <div class="slide-in-left delay-3 magnetic interactive-glow" data-cursor-text="Sigurno i pouzdano" style="text-align: center; padding: 2rem;">
-        <div class="scale-in delay-4" style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #26de81, #20bf6b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+      <div class="animate-on-scroll magnetic interactive-element glow-on-hover" data-tooltip="Sigurno i pouzdano" 
+           style="text-align: center; padding: 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #26de81, #20bf6b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
           <i class="fas fa-shield-alt"></i>
         </div>
-        <h3 class="text-reveal delay-5" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
-          <span>Privatnost</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-primary);">
+          Privatnost
         </h3>
-        <p class="fade-in delay-6" style="color: var(--text-secondary); line-height: 1.6;">
-          Vaši podaci su sigurni - koristimo ih samo za poboljšanje preporuka
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+          Sustav koristi podatke samo za poboljšanje preporuka
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section-enhanced cta-section-enhanced interactive-glow">
-  <div class="section-container-enhanced">
-    <div class="cta-content-enhanced">
-      <div class="section-badge slide-in-left delay-1 magnetic" data-cursor-text="Zadnji korak">03 - Početak</div>
+<section class="section-primary cta-section-primary">
+  <div class="section-container-primary">
+    <div class="cta-content-primary">
+      <div class="section-badge animate-on-scroll magnetic" data-tooltip="Završni korak">03 - Počnite</div>
 
-      <h5 class="hero-title-enhanced text-reveal">
-        <span>Spremni?
-      </h5>
-      <p class="cta-subtitle-enhanced blur-in delay-3">
-        Pridružite se tisućama korisnika koji već koriste naš AI za otkrivanje nove glazbe
+      <h2 class="cta-title-primary animate-on-scroll">
+        Spremni za početak?
+      </h2>
+      <p class="cta-subtitle-primary animate-on-scroll">
+        Isprobajte alat koji vam donosi nove pjesme u kojima ćete uživati
       </p>
       
       <div style="display: flex; justify-content: center; gap: 2rem; margin: 3rem 0; flex-wrap: wrap;">
-        <div class="scale-in delay-4 magnetic" data-cursor-text="Brza registracija" style="text-align: center; max-width: 150px;">
+        <div class="animate-on-scroll magnetic interactive-element" data-tooltip="Brza registracija" 
+             style="text-align: center; max-width: 150px;">
           <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">1</div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">Registriraj se</p>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Registrirajte se</p>
         </div>
         
-        <div class="scale-in delay-5 magnetic" data-cursor-text="Jednostavno ocjenjivanje" style="text-align: center; max-width: 150px;">
+        <div class="animate-on-scroll magnetic interactive-element" data-tooltip="Jednostavno ocjenjivanje" 
+             style="text-align: center; max-width: 150px;">
           <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">2</div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">Ocijeni pjesme</p>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Kreirajte playlistu</p>
         </div>
         
-        <div class="scale-in delay-6 magnetic" data-cursor-text="Neograničeno uživanje" style="text-align: center; max-width: 150px;">
+        <div class="animate-on-scroll magnetic interactive-element" data-tooltip="Neograničeno uživanje" 
+             style="text-align: center; max-width: 150px;">
           <div style="width: 50px; height: 50px; background: rgba(30, 215, 96, 0.2); border: 2px solid var(--spotify-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; color: var(--spotify-green);">3</div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">Uživaj u preporukama</p>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Uživajte</p>
         </div>
       </div>
       
-      <a href="#" class="cta-button-enhanced scale-in delay-4 magnetic" data-cursor-text="Počnimo zajedno!">
+      <a href="{% url 'accounts:register' %}" class="cta-button-primary animate-on-scroll magnetic glow-on-hover" 
+         data-tooltip="Počnimo zajedno!">
         <i class="fas fa-rocket"></i>
-        KLIKNI ZA POČETAK!
+        POČNITE ODMAH!
       </a>
     </div>
   </div>
 </section>
 
-
 <script src="{% static 'scripts/homepage.js' %}"></script>
+<script src="{% static 'scripts/homepage-mouse.js' %}"></script>
 
 {% endblock %}

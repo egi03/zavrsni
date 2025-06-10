@@ -90,27 +90,4 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(openSignUp, 100);
   }
   
-  const messages = document.querySelectorAll('.messages .message');
-  if (messages.length > 0) {
-    let messageContainer = document.querySelector('.message-container');
-    if (!messageContainer) {
-      messageContainer = document.createElement('div');
-      messageContainer.className = 'message-container';
-      document.querySelector('.container').prepend(messageContainer);
-    }
-    
-    messages.forEach(message => {
-      const newMessage = document.createElement('div');
-      newMessage.className = `message ${message.className}`;
-      newMessage.textContent = message.textContent;
-      messageContainer.appendChild(newMessage);
-      
-      setTimeout(() => {
-        newMessage.style.opacity = '0';
-        setTimeout(() => {
-          newMessage.remove();
-        }, 500);
-      }, 5000);
-    });
-  }
 });
