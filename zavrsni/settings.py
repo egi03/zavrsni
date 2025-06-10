@@ -26,19 +26,23 @@ SECRET_KEY = 'django-insecure-zxev!4$s#_oc^hju1lahjp*d&*5zby+7t6s%yor-v36n!^a^7j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'core',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
+    'music',
+    'spotify',
+    'recommendations',
+    'lastfm',
 ]
 
 MIDDLEWARE = [
@@ -56,7 +60,7 @@ ROOT_URLCONF = 'zavrsni.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'core' / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,7 +72,7 @@ TEMPLATES = [
         },
     },
 ]
-STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 
 WSGI_APPLICATION = 'zavrsni.wsgi.application'
@@ -119,7 +123,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -127,4 +131,53 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+RECOMMENDATION_SETTINGS = {
+    'COLLABORATIVE_FACTORS': 50,
+    'CONTENT_ENCODING_DIM': 32,
+    'DEFAULT_STRATEGY': 'balanced',
+    'MAX_RECOMMENDATIONS': 50,
+    'CACHE_TIMEOUT': 1800,
+    'BATCH_SIZE': 128,
+    'TRAINING_EPOCHS': 50,
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'django.log',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'lastfm': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'recommendations': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+SPOTIFY_CLIENT_ID = 'x'
+SPOTIFY_CLIENT_SECRET = 'x'
+
+LASTFM_API_KEY = 'x'
