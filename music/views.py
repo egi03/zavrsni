@@ -67,6 +67,12 @@ def get_playlist_recommendations(playlist, strategy='balanced', limit=8):
         if existing_recs.exists():
             recommendations = []
             for rec in existing_recs:
+                
+                primary_tags = []
+                if rec.song.lastfm_tags:
+                    sorted_tags = sorted(rec.song.lastfm_tags.items(), key=lambda x: x[1], reverse=True)[:3]
+                    primary_tags = [tag[0] for tag in sorted_tags]
+                
                 recommendations.append({
                     'song': {
                         'id': rec.song.id,
@@ -77,12 +83,14 @@ def get_playlist_recommendations(playlist, strategy='balanced', limit=8):
                         'spotify_id': rec.song.spotify_id,
                         'year': rec.song.year,
                         'popularity': rec.song.popularity,
+                        'primary_tags': primary_tags,
+                        'lastfm_listeners': rec.song.lastfm_listeners,
                     },
                     'score': rec.hybrid_score,
                     'explanation': {
                         'collaborative': rec.collaborative_score,
-                        'content_audio': rec.content_audio_score,
-                        'content_mood': rec.content_mood_score,
+                        'content_tags': rec.content_audio_score,
+                        'content_similar': rec.content_mood_score,
                         'popularity': rec.popularity_score,
                     }
                 })
