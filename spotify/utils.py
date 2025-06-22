@@ -404,7 +404,8 @@ class SpotifyAPI:
             return None
         
         headers = {'Authorization': f'Bearer {self.access_token}'}
-        url = f'{self.BASE_URL}/{endpoint.lstrip('/')}'
+        cleaned_endpoint = endpoint.lstrip('/')
+        url = f'{self.BASE_URL}/{cleaned_endpoint}'
         
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:

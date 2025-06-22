@@ -110,7 +110,7 @@ def import_playlist(request, playlist_id):
         return JsonResponse({'success': False, 'error': 'Error fetching playlist data'})
     
     local_playlist = Playlist.objects.create(
-        name=f'{playlist_data['name']} (from Spotify)',
+        name=f'{playlist_data["name"]} (from Spotify)',
         user=request.user,
         description=playlist_data.get('description', ''),
         is_public=False,
