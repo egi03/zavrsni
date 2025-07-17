@@ -51,10 +51,19 @@ def social_feed(request):
 @login_required
 @require_POST
 def follow_user(request, username):
+    if not username or not username.strip():
+        return JsonResponse({'error': 'Invalid username'}, status=400)
+    
     user_to_follow = get_object_or_404(User, username=username)
+    
+    if not user_to_follow.username or not user_to_follow.username.strip():
+        return JsonResponse({'error': 'Invalid user account'}, status=400)
     
     if user_to_follow == request.user:
         return JsonResponse({'error': 'Ne možeš zapratiti samog sebe'}, status=400)
+    
+    if not request.user.username or not request.user.username.strip():
+        return JsonResponse({'error': 'Your account has invalid username'}, status=400)
     
     follow, created = UserFollow.objects.get_or_create(
         follower=request.user,
@@ -131,6 +140,31 @@ def follow_playlist(request, playlist_id):
     return JsonResponse({
         'following': following,
         'followers_count': followers_count
+    })
+
+@login_required
+@require_POST
+def start_conversation(request, username):
+    """Start a conversation with a user without sending a message"""
+    recipient = get_object_or_404(User, username=username)
+    
+    if recipient == request.user:
+        return JsonResponse({'error': 'Ne možete pokrenuti razgovor sa samim sobom'}, status=400)
+    
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=recipient
+    ).distinct().first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, recipient)
+    
+    return JsonResponse({
+        'success': True,
+        'conversation_id': conversation.id,
+        'redirect_url': f'/social/messages/conversation/{conversation.id}/'
     })
     
 @login_required
@@ -294,13 +328,26 @@ def add_comment(request, playlist_id):
 @login_required
 def followers_list(request, username):
     user = get_object_or_404(User, username=username)
-    followers = UserFollow.objects.filter(following=user).select_related(
-        'follower', 'follower__userprofile'
-    )
+    followers = UserFollow.objects.filter(
+        following=user,
+        follower__username__isnull=False,
+        follower__username__gt=''
+    ).select_related('follower', 'follower__userprofile')
+    
+    current_user_following = set()
+    if request.user.is_authenticated:
+        current_user_following = set(
+            UserFollow.objects.filter(
+                follower=request.user,
+                following__username__isnull=False,
+                following__username__gt=''
+            ).values_list('following__username', flat=True)
+        )
     
     context = {
         'profile_user': user,
         'followers': followers,
+        'current_user_following': current_user_following,
         'is_followers': True
     }
     
@@ -309,13 +356,26 @@ def followers_list(request, username):
 @login_required
 def following_list(request, username):
     user = get_object_or_404(User, username=username)
-    following = UserFollow.objects.filter(follower=user).select_related(
-        'following', 'following__userprofile'
-    )
+    following = UserFollow.objects.filter(
+        follower=user,
+        following__username__isnull=False,
+        following__username__gt=''
+    ).select_related('following', 'following__userprofile')
+    
+    current_user_following = set()
+    if request.user.is_authenticated:
+        current_user_following = set(
+            UserFollow.objects.filter(
+                follower=request.user,
+                following__username__isnull=False,
+                following__username__gt=''
+            ).values_list('following__username', flat=True)
+        )
     
     context = {
         'profile_user': user,
         'following': following,
+        'current_user_following': current_user_following,
         'is_followers': False
     }
     
