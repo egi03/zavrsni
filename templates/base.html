@@ -88,6 +88,22 @@
         </div>
       </nav>
 
+      {% if messages and not request.resolver_match.url_name == 'messages' and not request.resolver_match.url_name == 'conversation' %}
+        <div class="global-messages-container" id="globalMessages">
+          {% for message in messages %}
+            <div class="global-message global-message-{{ message.tags }}" data-message-id="{{ forloop.counter }}">
+              <div class="global-message-content">
+                <i class="global-message-icon fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                <span class="global-message-text">{{ message }}</span>
+              </div>
+              <button class="global-message-close" onclick="closeGlobalMessage(this)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
       <div class="search-overlay" id="searchOverlay">
       <div class="search-container">
         <div class="search-header">
@@ -173,6 +189,7 @@
     </div>
   </footer>
 
+  <script src="{% static 'scripts/global-messages.js' %}"></script>
   <script src="{% static 'scripts/profile-search.js' %}"></script>
   
   <script>
@@ -193,7 +210,188 @@
           document.body.classList.remove('menu-open');
         }
       });
+
+      // Auto-hide messages after 5 seconds
+      const messages = document.querySelectorAll('.global-message');
+      messages.forEach(function(message, index) {
+        setTimeout(function() {
+          if (message.parentNode) {
+            message.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(function() {
+              if (message.parentNode) {
+                message.remove();
+              }
+            }, 300);
+          }
+        }, 5000 + (index * 500)); // Stagger the auto-hide
+      });
     });
+
+    function closeGlobalMessage(button) {
+      const message = button.closest('.global-message');
+      if (message) {
+        message.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(function() {
+          if (message.parentNode) {
+            message.remove();
+          }
+        }, 300);
+      }
+    }
+
+    // Create global message function for JavaScript usage
+    function showGlobalMessage(text, type = 'info', duration = 5000) {
+      const container = document.getElementById('globalMessages') || createMessageContainer();
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `global-message global-message-${type}`;
+      messageDiv.innerHTML = `
+        <div class="global-message-content">
+          <i class="global-message-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+          <span class="global-message-text">${text}</span>
+        </div>
+        <button class="global-message-close" onclick="closeGlobalMessage(this)">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      container.appendChild(messageDiv);
+      
+      // Auto-hide after duration
+      setTimeout(function() {
+        closeGlobalMessage(messageDiv.querySelector('.global-message-close'));
+      }, duration);
+    }
+
+    function createMessageContainer() {
+      const container = document.createElement('div');
+      container.id = 'globalMessages';
+      container.className = 'global-messages-container';
+      document.body.insertBefore(container, document.querySelector('main'));
+      return container;
+    }
   </script>
+
+  <style>
+    /* Global Messages Styles */
+    .global-messages-container {
+      position: fixed;
+      top: 80px; /* Below the nav */
+      right: 20px;
+      z-index: 9999;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .global-message {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+      animation: slideIn 0.3s ease forwards;
+      border-left: 4px solid;
+      font-weight: 500;
+    }
+
+    .global-message-success {
+      background: rgba(76, 175, 80, 0.95);
+      color: white;
+      border-left-color: #4CAF50;
+    }
+
+    .global-message-error {
+      background: rgba(244, 67, 54, 0.95);
+      color: white;
+      border-left-color: #f44336;
+    }
+
+    .global-message-warning {
+      background: rgba(255, 152, 0, 0.95);
+      color: white;
+      border-left-color: #ff9800;
+    }
+
+    .global-message-info {
+      background: rgba(33, 150, 243, 0.95);
+      color: white;
+      border-left-color: #2196F3;
+    }
+
+    .global-message-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .global-message-icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+    }
+
+    .global-message-text {
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .global-message-close {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 12px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .global-message-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .global-messages-container {
+        top: 70px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+
+      .global-message {
+        padding: 12px 16px;
+      }
+
+      .global-message-text {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
 </body>
 </html>
