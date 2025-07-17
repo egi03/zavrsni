@@ -73,10 +73,10 @@ def follow_user(request, username):
     if not created:
         follow.delete()
         following = False
-        messages.success(request, f'Prestali ste pratiti {username}')
+        message = f'Prestali ste pratiti {username}'
     else:
         following = True
-        messages.success(request, f'Zapratili ste {username}')
+        message = f'Zapratili ste {username}'
         
         Notification.objects.create(
             recipient=user_to_follow,
@@ -96,9 +96,12 @@ def follow_user(request, username):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({
             'following': following,
-            'followers_count': followers_count
+            'followers_count': followers_count,
+            'message': message,
+            'message_type': 'success'
         })
     
+    messages.success(request, message)
     return redirect('accounts:profile_view', username=username)
 
 @login_required
@@ -239,19 +242,10 @@ def send_message(request):
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
-
     message = Message.objects.create(
         conversation=conversation,
         sender=request.user,
         content=content
-    )
-    
-    other_participant = conversation.get_other_participant(request.user)
-    Notification.objects.create(
-        recipient=other_participant,
-        sender=request.user,
-        notification_type='message',
-        message=f'Nova poruka od {request.user.username}'
     )
     
     return JsonResponse({
@@ -259,7 +253,7 @@ def send_message(request):
         'message': {
             'id': message.id,
             'content': message.content,
-            'sender': message.sender,
+            'sender': message.sender.username,
             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M')
         }
     })
@@ -293,7 +287,7 @@ def add_comment(request, playlist_id):
         return JsonResponse({'error': 'Ne moze se komentirati privatne playliste'}, status=403)
     
     data = json.loads(request.body)
-    content = data.get('convent', '').strip()
+    content = data.get('content', '').strip()
     parent_id = data.get('parent_id')
     
     if not content:
