@@ -37,17 +37,31 @@
                         </span>
                         <span class="stat-divider">•</span>
                         <span class="stat-item">
-                            <strong>45</strong> Pratitelja
+                            <strong>{{ profile.followers.count }}</strong> Pratitelja
                         </span>
+                        <span class="stat-divider">•</span>
+                        <span class="stat-item">
+                            <strong>{{ profile.following.count }}</strong> Prati
+                        </span>
+
                     </div>
                     <p class="profile-bio">
                         {{ profile.userprofile.bio|default:"Nema opisa" }}
                     </p>
                     
                     <div class="profile-actions">
-                        <button class="btn-follow">
-                            <i class="fas fa-user-plus"></i> Prati
-                        </button>
+                        {% if request.user != profile %}
+                            <button class="btn-follow" id="followBtn" onclick="toggleFollow('{{ profile.username }}')">
+                                {% if request.user in profile.followers.all %}
+                                    <i class="fas fa-user-check"></i> Pratite
+                                {% else %}
+                                    <i class="fas fa-user-plus"></i> Prati
+                                {% endif %}
+                            </button>
+                            <button class="btn-message" onclick="startChat('{{ profile.username }}')">
+                                <i class="fas fa-comment"></i> Poruka
+                            </button>
+                        {% endif %}
                         <button class="btn-share">
                             <i class="fas fa-share-alt"></i>
                         </button>
@@ -55,6 +69,7 @@
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -152,6 +167,46 @@
     </div>
 
     <script>
+        function toggleFollow(username) {
+            fetch(`/social/follow/user/${username}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const btn = document.getElementById('followBtn');
+                if (data.following) {
+                    btn.innerHTML = '<i class="fas fa-user-check"></i> Pratite';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Prati';
+                }
+                location.reload();
+            });
+        }
+
+        function startChat(username) {
+            fetch('/social/messages/send/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    recipient: username,
+                    content: 'Pozdrav!'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/social/messages/';
+                }
+            });
+        }
+
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
