@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
   <link rel="stylesheet" href="{% static 'styles/songs-container.css' %}">
   <link rel="stylesheet" href="{% static 'styles/recommendations.css' %}">
+  {% endblock %}
 
 {% block content %}
 <div class="container">
@@ -282,76 +283,91 @@
   window.hasEnoughSongsForRecommendations = {{ has_enough_songs_for_recommendations|yesno:"true,false" }};
 
   document.getElementById('commentForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const content = document.getElementById('commentInput').value.trim();
-      if (!content) return;
-      
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šalje...';
-      submitBtn.disabled = true;
-      
-      try {
-          const response = await fetch(`/social/playlist/{{ playlist.id }}/comment/`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': '{{ csrf_token }}'
-              },
-              body: JSON.stringify({ content })
-          });
-          
-          const data = await response.json();
-          
-          if (data.success) {
-              // Clear input
-              document.getElementById('commentInput').value = '';
-              
-              // Add new comment to the list
-              const commentsList = document.getElementById('commentsList');
-              const emptyState = commentsList.querySelector('.comments-empty');
-              if (emptyState) {
-                  emptyState.remove();
-              }
-              
-              const newComment = document.createElement('div');
-              newComment.className = 'comment-item';
-              newComment.innerHTML = `
-                  <div class="comment-header">
-                      <a href="/accounts/profile/{{ request.user.username }}/">
-                          <i class="fas fa-user"></i> {{ request.user.username }}
-                      </a>
-                      <span class="comment-time">upravo sada</span>
-                  </div>
-                  <div class="comment-content">${escapeHtml(content)}</div>
-              `;
-              
-              commentsList.insertBefore(newComment, commentsList.firstChild);
-              
-              // Show success message
-              showMessage('Komentar je dodan!', 'success');
-          } else {
-              showMessage(data.error || 'Greška pri dodavanju komentara', 'error');
-          }
-      } catch (error) {
-          console.error('Error adding comment:', error);
-          showMessage('Greška pri dodavanju komentara', 'error');
-      } finally {
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-      }
-  });
+    e.preventDefault();
+    const content = document.getElementById('commentInput').value.trim();
+    if (!content) return;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šalje...';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`/social/playlist/{{ playlist.id }}/comment/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ content })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear input
+            document.getElementById('commentInput').value = '';
+            
+            // Add new comment to the list
+            const commentsList = document.getElementById('commentsList');
+            const emptyState = commentsList.querySelector('.comments-empty');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const newComment = document.createElement('div');
+            newComment.className = 'comment-item';
+            newComment.innerHTML = `
+                <div class="comment-header">
+                    <a href="/accounts/profile/{{ request.user.username }}/">
+                        <i class="fas fa-user"></i> {{ request.user.username }}
+                    </a>
+                    <span class="comment-time">upravo sada</span>
+                </div>
+                <div class="comment-content">${escapeHtml(content)}</div>
+            `;
+            
+            commentsList.insertBefore(newComment, commentsList.firstChild);
+            
+            // Show success message using global message system
+            if (typeof globalMessages !== 'undefined') {
+                globalMessages.success('Komentar je dodan!');
+            } else if (typeof showGlobalMessage !== 'undefined') {
+                showGlobalMessage('Komentar je dodan!', 'success');
+            }
+        } else {
+            // Show error message
+            const errorMessage = data.error || 'Greška pri dodavanju komentara';
+            if (typeof globalMessages !== 'undefined') {
+                globalMessages.error(errorMessage);
+            } else if (typeof showGlobalMessage !== 'undefined') {
+                showGlobalMessage(errorMessage, 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        const errorMessage = 'Greška pri dodavanju komentara';
+        if (typeof globalMessages !== 'undefined') {
+            globalMessages.error(errorMessage);
+        } else if (typeof showGlobalMessage !== 'undefined') {
+            showGlobalMessage(errorMessage, 'error');
+        }
+    } finally {
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+    }
+});
 
-  function escapeHtml(text) {
-      const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-  }
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
 
   function showMessage(text, type) {
       const messageDiv = document.createElement('div');
