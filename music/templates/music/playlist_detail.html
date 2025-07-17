@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="{% static 'styles/song-search.css' %}">
   <link rel="stylesheet" href="{% static 'styles/songs-container.css' %}">
   <link rel="stylesheet" href="{% static 'styles/recommendations.css' %}">
-{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -20,9 +19,9 @@
       <span><i class="fas fa-calendar"></i> Kreirana: {{ playlist.created_at|date:"d/m/Y" }}</span>
       <span>
         {% if playlist.is_public %}
-          <i class="fas fa-globe"></i> Public
+          <i class="fas fa-globe"></i> Javna
         {% else %}
-          <i class="fas fa-lock"></i> Private
+          <i class="fas fa-lock"></i> Privatna
         {% endif %}
       </span>
     </div>
@@ -112,8 +111,6 @@
                 <p class="recommendation-card-artist">{{ rec.song.artist }}</p>
                 <p class="recommendation-card-album">{{ rec.song.album }}</p>
                 
-                
-                
                 <div class="recommendation-score">
                   <div class="score-bar">
                     <div class="score-fill" style="width: {{ rec.score|floatformat:0|add:0 }}%"></div>
@@ -194,7 +191,7 @@
                 <div class="song-card-actions">
                   <form action="{% url 'music:remove_from_playlist' playlist.id song.id %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="song-card-remove-btn" title="Remove from playlist">
+                    <button type="submit" class="song-card-remove-btn" title="Ukloni iz playliste">
                       <i class="fas fa-times"></i>
                     </button>
                   </form>
@@ -233,44 +230,50 @@
         <i class="fas fa-chevron-down"></i>
       </div>
     </div>
+  </div>
+  {% else %}
+    <div class="songs-empty">
+      <i class="fas fa-music"></i>
+      <h3>Još nema pjesama</h3>
+      <p>Dodajte pjesme!</p>
+    </div>
+  {% endif %}
 
-    {% endif %}
-
-
-
-
-      {% if playlist.is_public or request.user == playlist.user %}
+  <!-- Comments Section -->
+  {% if playlist.is_public or request.user == playlist.user %}
   <div class="playlist-comments-section">
-    <h2>Komentari</h2>
+    <h2><i class="fas fa-comments"></i> Komentari</h2>
 
     {% if request.user.is_authenticated %}
       <form id="commentForm" class="comment-form">
-        <textarea id="commentInput" placeholder="Dodaj komentar..." rows="3"></textarea>
-        <button type="submit">Pošalji</button>
+        {% csrf_token %}
+        <textarea id="commentInput" placeholder="Dodaj komentar..." rows="3" required></textarea>
+        <button type="submit">
+          <i class="fas fa-paper-plane"></i> Pošalji
+        </button>
       </form>
     {% endif %}
 
     <div id="commentsList" class="comments-list">
       {% for comment in playlist.comments.all %}
-        <div class="comment-item">
+        <div class="comment-item" data-comment-id="{{ comment.id }}">
           <div class="comment-header">
             <a href="{% url 'accounts:profile_view' comment.user.username %}">
-              {{ comment.user.username }}
+              <i class="fas fa-user"></i> {{ comment.user.username }}
             </a>
             <span class="comment-time">{{ comment.created_at|timesince }} ago</span>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
         </div>
+      {% empty %}
+        <div class="comments-empty">
+          <i class="fas fa-comment-slash"></i>
+          <p>Još nema komentara. Budite prvi koji će komentirati!</p>
+        </div>
       {% endfor %}
     </div>
   </div>
-{% else %}
-  <div class="songs-empty">
-    <i class="fas fa-music"></i>
-    <h3>Još nema pjesama</h3>
-    <p>Dodajte pjesme!</p>
-  </div>
-{% endif %}
+  {% endif %}
 </div>
 
 <script>  
@@ -283,23 +286,111 @@
       const content = document.getElementById('commentInput').value.trim();
       if (!content) return;
       
-      const response = await fetch(`/social/playlist/{{ playlist.id }}/comment/`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({ content })
-      });
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šalje...';
+      submitBtn.disabled = true;
       
-      const data = await response.json();
-      if (data.success) {
-          location.reload();
+      try {
+          const response = await fetch(`/social/playlist/{{ playlist.id }}/comment/`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ content })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Clear input
+              document.getElementById('commentInput').value = '';
+              
+              // Add new comment to the list
+              const commentsList = document.getElementById('commentsList');
+              const emptyState = commentsList.querySelector('.comments-empty');
+              if (emptyState) {
+                  emptyState.remove();
+              }
+              
+              const newComment = document.createElement('div');
+              newComment.className = 'comment-item';
+              newComment.innerHTML = `
+                  <div class="comment-header">
+                      <a href="/accounts/profile/{{ request.user.username }}/">
+                          <i class="fas fa-user"></i> {{ request.user.username }}
+                      </a>
+                      <span class="comment-time">upravo sada</span>
+                  </div>
+                  <div class="comment-content">${escapeHtml(content)}</div>
+              `;
+              
+              commentsList.insertBefore(newComment, commentsList.firstChild);
+              
+              // Show success message
+              showMessage('Komentar je dodan!', 'success');
+          } else {
+              showMessage(data.error || 'Greška pri dodavanju komentara', 'error');
+          }
+      } catch (error) {
+          console.error('Error adding comment:', error);
+          showMessage('Greška pri dodavanju komentara', 'error');
+      } finally {
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
       }
   });
+
+  function escapeHtml(text) {
+      const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  function showMessage(text, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 1000;
+          padding: 12px 16px;
+          border-radius: 4px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          animation: slideIn 0.3s ease;
+          ${type === 'success' ? 'background-color: #4CAF50; color: white;' : 'background-color: #f44336; color: white;'}
+      `;
+      messageDiv.textContent = text;
+      
+      document.body.appendChild(messageDiv);
+      
+      setTimeout(() => {
+          messageDiv.style.animation = 'slideOut 0.3s ease forwards';
+          setTimeout(() => messageDiv.remove(), 300);
+      }, 3000);
+  }
 </script>
 
 <script src="{% static 'scripts/song-search.js' %}"></script>
 <script src="{% static 'scripts/recommendations.js' %}"></script>
+
+<style>
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+</style>
 
 {% endblock %}
