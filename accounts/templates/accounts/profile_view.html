@@ -36,13 +36,13 @@
                             <strong>{{ total_songs }}</strong> Pjesama
                         </span>
                         <span class="stat-divider">•</span>
-                        <span class="stat-item">
+                        <a href="{% url 'social:followers' profile.username %}" class="stat-item clickable">
                             <strong>{{ profile.followers.count }}</strong> Pratitelja
-                        </span>
+                        </a>
                         <span class="stat-divider">•</span>
-                        <span class="stat-item">
+                        <a href="{% url 'social:following' profile.username %}" class="stat-item clickable">
                             <strong>{{ profile.following.count }}</strong> Prati
-                        </span>
+                        </a>
 
                     </div>
                     <p class="profile-bio">
@@ -50,9 +50,9 @@
                     </p>
                     
                     <div class="profile-actions">
-                        {% if request.user != profile %}
-                            <button class="btn-follow" id="followBtn" onclick="toggleFollow('{{ profile.username }}')">
-                                {% if request.user in profile.followers.all %}
+                        {% if request.user.is_authenticated and request.user != profile %}
+                            <button class="btn-follow{% if is_following %} following{% endif %}" id="followBtn" onclick="toggleFollow('{{ profile.username }}')">
+                                {% if is_following %}
                                     <i class="fas fa-user-check"></i> Pratite
                                 {% else %}
                                     <i class="fas fa-user-plus"></i> Prati
@@ -168,6 +168,13 @@
 
     <script>
         function toggleFollow(username) {
+            const btn = document.getElementById('followBtn');
+            const originalContent = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Molimo pričekajte...';
+            btn.disabled = true;
+            
             fetch(`/social/follow/user/${username}/`, {
                 method: 'POST',
                 headers: {
@@ -177,33 +184,64 @@
             })
             .then(response => response.json())
             .then(data => {
-                const btn = document.getElementById('followBtn');
                 if (data.following) {
                     btn.innerHTML = '<i class="fas fa-user-check"></i> Pratite';
+                    btn.classList.add('following');
                 } else {
                     btn.innerHTML = '<i class="fas fa-user-plus"></i> Prati';
+                    btn.classList.remove('following');
                 }
-                location.reload();
+                
+                // Update followers count in the stats
+                const followersLinks = document.querySelectorAll('.stat-item.clickable');
+                followersLinks.forEach(link => {
+                    if (link.textContent.includes('Pratitelja')) {
+                        const strongElement = link.querySelector('strong');
+                        if (strongElement) {
+                            strongElement.textContent = data.followers_count || 0;
+                        }
+                    }
+                });
+                
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             });
         }
 
         function startChat(username) {
-            fetch('/social/messages/send/', {
+            // Show loading state
+            const messageBtn = document.querySelector('.btn-message');
+            const originalContent = messageBtn.innerHTML;
+            messageBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Otvaram...';
+            messageBtn.disabled = true;
+            
+            fetch(`/social/messages/start/${username}/`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    recipient: username,
-                    content: 'Pozdrav!'
-                })
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/social/messages/';
+                    // Redirect to the conversation
+                    window.location.href = data.redirect_url;
+                } else {
+                    // Handle error
+                    console.error('Error starting conversation:', data.error);
+                    messageBtn.innerHTML = originalContent;
+                    messageBtn.disabled = false;
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageBtn.innerHTML = originalContent;
+                messageBtn.disabled = false;
             });
         }
 
