@@ -1,6 +1,5 @@
+.env
 __pycache__/
-*.py[cod]
-*.so
-*.sqlite3
+*.pyc
 db.sqlite3
-media/
+*.log
