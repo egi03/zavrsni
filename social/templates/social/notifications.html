@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Obavijesti{% endblock %}
+
+{% block extra_css %}
+<style>
+.notifications-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.notifications-header h1 {
+    margin: 0;
+}
+
+.mark-read-btn {
+    background: transparent;
+    border: 1px solid var(--ui-border);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mark-read-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--spotify-green);
+    color: var(--spotify-green);
+}
+
+.notifications-list {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--ui-border);
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.unread {
+    background-color: rgba(30, 215, 96, 0.05);
+    border-left: 3px solid var(--spotify-green);
+}
+
+.notification-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+}
+
+.notification-icon.follow {
+    background: rgba(30, 215, 96, 0.2);
+    color: var(--spotify-green);
+}
+
+.notification-icon.message {
+    background: rgba(29, 155, 240, 0.2);
+    color: #1d9bf0;
+}
+
+.notification-icon.playlist {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+}
+
+.notification-icon.mention {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-text {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+}
+
+.notification-text a {
+    color: var(--spotify-green);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.notification-text a:hover {
+    text-decoration: underline;
+}
+
+.notification-time {
+    font-size: 0.875rem;
+    color: var(--text-subdued);
+}
+
+.notification-action {
+    margin-left: 1rem;
+}
+
+.notification-action button {
+    padding: 0.5rem 1rem;
+    background: var(--spotify-green);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-action button:hover {
+    background: var(--spotify-green-hover);
+    transform: scale(1.05);
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-subdued);
+}
+
+.empty-notifications i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.notification-badge {
+    display: inline-block;
+    background: #ff4444;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>
+            Obavijesti
+            {% if unread_count > 0 %}
+                <span class="notification-badge">{{ unread_count }}</span>
+            {% endif %}
+        </h1>
+        
+        {% if unread_count > 0 %}
+            <a href="?mark_read=true" class="mark-read-btn">
+                <i class="fas fa-check"></i> Označi sve kao pročitano
+            </a>
+        {% endif %}
+    </div>
+    
+    {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% endif %}" 
+                     onclick="handleNotificationClick({{ notification.id }}, '{{ notification.notification_type }}', {% if notification.playlist %}{{ notification.playlist.id }}{% else %}null{% endif %}, '{% if notification.sender %}{{ notification.sender.username }}{% endif %}')">
+                    
+                    <div class="notification-icon {{ notification.notification_type }}">
+                        {% if notification.notification_type == 'follow' %}
+                            <i class="fas fa-user-plus"></i>
+                        {% elif notification.notification_type == 'message' %}
+                            <i class="fas fa-envelope"></i>
+                        {% elif notification.notification_type == 'playlist_follow' %}
+                            <i class="fas fa-music"></i>
+                        {% elif notification.notification_type == 'mention' %}
+                            <i class="fas fa-at"></i>
+                        {% else %}
+                            <i class="fas fa-bell"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="notification-content">
+                        <p class="notification-text">
+                            {% if notification.sender %}
+                                <a href="{% url 'accounts:profile_view' notification.sender.username %}">
+                                    {{ notification.sender.username }}
+                                </a>
+                            {% endif %}
+                            {{ notification.message }}
+                            {% if notification.playlist %}
+                                <a href="{% url 'music:playlist_detail' notification.playlist.id %}">
+                                    "{{ notification.playlist.name }}"
+                                </a>
+                            {% endif %}
+                        </p>
+                        <div class="notification-time">
+                            {{ notification.created_at|timesince }} ago
+                        </div>
+                    </div>
+                    
+                    {% if notification.notification_type == 'follow' and notification.sender %}
+                        <div class="notification-action">
+                            <button onclick="event.stopPropagation(); followBack('{{ notification.sender.username }}', this)">
+                                Prati nazad
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if notifications.has_other_pages %}
+            <div class="pagination" style="text-align: center; margin-top: 2rem;">
+                {% if notifications.has_previous %}
+                    <a href="?page={{ notifications.previous_page_number }}" class="btn">Prethodna</a>
+                {% endif %}
+                
+                <span style="margin: 0 1rem; color: var(--text-secondary);">
+                    Stranica {{ notifications.number }} od {{ notifications.paginator.num_pages }}
+                </span>
+                
+                {% if notifications.has_next %}
+                    <a href="?page={{ notifications.next_page_number }}" class="btn">Sljedeća</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <h3>Nema obavijesti</h3>
+            <p>Kada netko prati vas ili vašu playlistu, vidjet ćete to ovdje</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function handleNotificationClick(notificationId, type, playlistId, senderUsername) {
+    // Mark as read
+    fetch(`/social/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    });
+    
+    // Navigate based on type
+    if (type === 'message') {
+        window.location.href = '/social/messages/';
+    } else if (type === 'playlist_follow' && playlistId) {
+        window.location.href = `/playlists/${playlistId}/`;
+    } else if (type === 'follow' && senderUsername) {
+        window.location.href = `/accounts/profile/${senderUsername}/`;
+    }
+}
+
+function followBack(username, button) {
+    fetch(`/social/follow/user/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.following) {
+            button.textContent = 'Pratite';
+            button.disabled = true;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

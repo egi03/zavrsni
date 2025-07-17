@@ -10,6 +10,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('playlists/', include('music.urls')),
     path('spotify/', include('spotify.urls')),
+    path('social/', include('social.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Social Feed{% endblock %}
+
+{% block extra_css %}
+<style>
+.social-feed-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+}
+
+.feed-main {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.feed-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-card {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.activity-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--ui-border);
+    transition: background-color 0.2s;
+}
+
+.activity-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--spotify-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--bg-primary);
+}
+
+.activity-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.activity-meta {
+    flex: 1;
+}
+
+.activity-username {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.activity-username:hover {
+    text-decoration: underline;
+}
+
+.activity-time {
+    font-size: 0.875rem;
+    color: var(--text-subdued);
+}
+
+.activity-content {
+    margin-left: 58px;
+    color: var(--text-secondary);
+}
+
+.activity-playlist,
+.activity-song {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(30, 215, 96, 0.1);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.activity-playlist:hover,
+.activity-song:hover {
+    background: rgba(30, 215, 96, 0.2);
+    transform: translateY(-2px);
+}
+
+.suggested-user,
+.trending-playlist {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+}
+
+.suggested-user-info,
+.trending-playlist-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.suggested-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--spotify-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: var(--bg-primary);
+}
+
+.follow-btn {
+    padding: 0.5rem 1rem;
+    background: var(--spotify-green);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.follow-btn:hover {
+    background: var(--spotify-green-hover);
+    transform: scale(1.05);
+}
+
+.follow-btn.following {
+    background: transparent;
+    color: var(--spotify-green);
+    border: 1px solid var(--spotify-green);
+}
+
+.empty-feed {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-subdued);
+}
+
+.empty-feed i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .social-feed-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .feed-sidebar {
+        order: -1;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="social-feed-container">
+    <div class="feed-main">
+        <h2>Activity Feed</h2>
+        
+        {% if activities %}
+            <div class="activities-list">
+                {% for activity in activities %}
+                    <div class="activity-item">
+                        <div class="activity-header">
+                            <a href="{% url 'accounts:profile_view' activity.user.username %}" class="activity-avatar">
+                                {% if activity.user.userprofile.profile_picture %}
+                                    <img src="{{ activity.user.userprofile.profile_picture.url }}" alt="{{ activity.user.username }}">
+                                {% else %}
+                                    {{ activity.user.username|slice:":1"|upper }}
+                                {% endif %}
+                            </a>
+                            <div class="activity-meta">
+                                <a href="{% url 'accounts:profile_view' activity.user.username %}" class="activity-username">
+                                    {{ activity.user.username }}
+                                </a>
+                                <div class="activity-time">
+                                    {{ activity.created_at|timesince }} ago
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-content">
+                            {% if activity.activity_type == 'playlist_created' %}
+                                Created a new playlist
+                                {% if activity.playlist %}
+                                    <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
+                                        <i class="fas fa-music"></i>
+                                        {{ activity.playlist.name }}
+                                    </a>
+                                {% endif %}
+                                
+                            {% elif activity.activity_type == 'playlist_followed' %}
+                                Started following playlist
+                                {% if activity.playlist %}
+                                    <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
+                                        <i class="fas fa-music"></i>
+                                        {{ activity.playlist.name }}
+                                    </a>
+                                {% endif %}
+                                
+                            {% elif activity.activity_type == 'song_added' %}
+                                Added a song to
+                                {% if activity.playlist %}
+                                    <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
+                                        <i class="fas fa-music"></i>
+                                        {{ activity.playlist.name }}
+                                    </a>
+                                {% endif %}
+                                
+                            {% elif activity.activity_type == 'user_followed' %}
+                                Started following
+                                {% if activity.target_user %}
+                                    <a href="{% url 'accounts:profile_view' activity.target_user.username %}" class="activity-username">
+                                        @{{ activity.target_user.username }}
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-feed">
+                <i class="fas fa-stream"></i>
+                <h3>Još nema aktivnosti</h3>
+                <p>Zapratite korisnike i playliste kako bi vidjeli njihove aktivnosti ovdje</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="feed-sidebar">
+        <!-- Suggested Users -->
+        <div class="sidebar-card">
+            <h3>Popularni korisnici</h3>
+            {% for user in suggested_users %}
+                <div class="suggested-user">
+                    <div class="suggested-user-info">
+                        <a href="{% url 'accounts:profile_view' user.username %}" class="suggested-avatar">
+                            {% if user.userprofile.profile_picture %}
+                                <img src="{{ user.userprofile.profile_picture.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                {{ user.username|slice:":1"|upper }}
+                            {% endif %}
+                        </a>
+                        <div>
+                            <a href="{% url 'accounts:profile_view' user.username %}" style="color: var(--text-primary); text-decoration: none;">
+                                {{ user.username }}
+                            </a>
+                            <div style="font-size: 0.875rem; color: var(--text-subdued);">
+                                {{ user.followers_count }} pratitelja
+                            </div>
+                        </div>
+                    </div>
+                    <button class="follow-btn" onclick="followUser('{{ user.username }}', this)">
+                        Prati
+                    </button>
+                </div>
+            {% empty %}
+                <p style="color: var(--text-subdued); font-size: 0.875rem;">Nema korsnika</p>
+            {% endfor %}
+        </div>
+        
+        <!-- Trending Playlists -->
+        <div class="sidebar-card">
+            <h3>Playliste u trendu🔥</h3>
+            {% for playlist in trending_playlists %}
+                <div class="trending-playlist">
+                    <div class="trending-playlist-info">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--ui-border); overflow: hidden;">
+                            {% if playlist.songs.first.photo %}
+                                <img src="{{ playlist.songs.first.photo }}" alt="{{ playlist.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'music:playlist_detail' playlist.id %}" style="color: var(--text-primary); text-decoration: none;">
+                                {{ playlist.name|truncatechars:20 }}
+                            </a>
+                            <div style="font-size: 0.875rem; color: var(--text-subdued);">
+                                by {{ playlist.user.username }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p style="color: var(--text-subdued); font-size: 0.875rem;">Nista nije u trendu</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function followUser(username, button) {
+    fetch(`/social/follow/user/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.following) {
+            button.textContent = 'Following';
+            button.classList.add('following');
+        } else {
+            button.textContent = 'Follow';
+            button.classList.remove('following');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}
