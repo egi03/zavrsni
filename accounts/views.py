@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from .forms import UserRegistrationForm, EmailOrUsernameAuthenticationForm
 from .models import UserProfile
 from music.models import Playlist
@@ -107,14 +108,29 @@ def profile(request):
 
 def profile_view(request, username):
     try:
-        user_profile = UserProfile.objects.get(user__username=username)
-    except UserProfile.DoesNotExist:
+        profile_user = get_object_or_404(User, username=username)
+        user_profile, created = UserProfile.objects.get_or_create(user=profile_user)
+    except User.DoesNotExist:
         messages.error(request, 'Korisnik nije pronađen.')
         return redirect('accounts:profile')
     
+    playlists = Playlist.objects.filter(user=profile_user, is_public=True)
+    
+    total_songs = sum(playlist.songs.count() for playlist in playlists)
+    
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        from social.models import UserFollow
+        is_following = UserFollow.objects.filter(
+            follower=request.user, 
+            following=profile_user
+        ).exists()
+    
     context = {
-        'playlists': Playlist.objects.filter(user=user_profile.user, is_public=True),
-        'profile': user_profile.user,
+        'playlists': playlists,
+        'profile': profile_user,
+        'total_songs': total_songs,
+        'is_following': is_following,
     }
     return render(request, 'accounts/profile_view.html', context)
 
