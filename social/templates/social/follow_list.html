@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if is_followers %}
+        {{ profile_user.username }} - Pratitelji
+    {% else %}
+        {{ profile_user.username }} - Prati
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/follow-list.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="follow-list-container">
+    <div class="follow-list-header">
+        <a href="{% url 'accounts:profile_view' profile_user.username %}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Natrag na profil
+        </a>
+        
+        <h1>{{ profile_user.username }}</h1>
+        
+        <div class="follow-list-tabs">
+            <a href="{% url 'social:followers' profile_user.username %}" 
+               class="follow-tab {% if is_followers %}active{% endif %}">
+                Pratitelji ({{ profile_user.followers.count }})
+            </a>
+            <a href="{% url 'social:following' profile_user.username %}" 
+               class="follow-tab {% if not is_followers %}active{% endif %}">
+                Prati ({{ profile_user.following.count }})
+            </a>
+        </div>
+    </div>
+    
+    {% if is_followers %}
+        {% if followers %}
+            <div class="follow-list">
+                {% for follow in followers %}
+                    {% if follow.follower.username %}
+                        <div class="follow-item">
+                            <a href="{% url 'accounts:profile_view' follow.follower.username %}" class="follow-avatar">
+                                {% if follow.follower.userprofile.profile_picture %}
+                                    <img src="{{ follow.follower.userprofile.profile_picture.url }}" alt="{{ follow.follower.username }}">
+                                {% else %}
+                                    {{ follow.follower.username|slice:":1"|upper }}
+                                {% endif %}
+                            </a>
+                            
+                            <div class="follow-info">
+                                <a href="{% url 'accounts:profile_view' follow.follower.username %}" class="follow-username">
+                                    {{ follow.follower.username }}
+                                </a>
+                                <div class="follow-meta">
+                                    Prati od {{ follow.created_at|date:"d.m.Y" }}
+                                </div>
+                            </div>
+                            
+                            {% if request.user != follow.follower and request.user.is_authenticated %}
+                                <div class="follow-actions">
+                                    {% if follow.follower.username in current_user_following %}
+                                        <button class="follow-btn following" onclick="toggleFollow('{{ follow.follower.username }}', this)">
+                                            Prestani pratiti
+                                        </button>
+                                    {% else %}
+                                        <button class="follow-btn" onclick="toggleFollow('{{ follow.follower.username }}', this)">
+                                            Prati
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-follow-list">
+                <i class="fas fa-users"></i>
+                <h3>Nema pratitelja</h3>
+                <p>{{ profile_user.username }} još nema pratitelje</p>
+            </div>
+        {% endif %}
+    {% else %}
+        {% if following %}
+            <div class="follow-list">
+                {% for follow in following %}
+                    {% if follow.following.username %}
+                        <div class="follow-item">
+                            <a href="{% url 'accounts:profile_view' follow.following.username %}" class="follow-avatar">
+                                {% if follow.following.userprofile.profile_picture %}
+                                    <img src="{{ follow.following.userprofile.profile_picture.url }}" alt="{{ follow.following.username }}">
+                                {% else %}
+                                    {{ follow.following.username|slice:":1"|upper }}
+                                {% endif %}
+                            </a>
+                            
+                            <div class="follow-info">
+                                <a href="{% url 'accounts:profile_view' follow.following.username %}" class="follow-username">
+                                    {{ follow.following.username }}
+                                </a>
+                                <div class="follow-meta">
+                                    Prati od {{ follow.created_at|date:"d.m.Y" }}
+                                </div>
+                            </div>
+                            
+                            {% if request.user != follow.following and request.user.is_authenticated %}
+                                <div class="follow-actions">
+                                    {% if follow.following.username in current_user_following %}
+                                        <button class="follow-btn following" onclick="toggleFollow('{{ follow.following.username }}', this)">
+                                            Prestani pratiti
+                                        </button>
+                                    {% else %}
+                                        <button class="follow-btn" onclick="toggleFollow('{{ follow.following.username }}', this)">
+                                            Prati
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-follow-list">
+                <i class="fas fa-user-plus"></i>
+                <h3>Ne prati nikoga</h3>
+                <p>{{ profile_user.username }} još ne prati nikoga</p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<script>
+function toggleFollow(username, button) {
+    const originalText = button.textContent.trim();
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
+    fetch(`/social/follow/user/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.following) {
+            button.textContent = 'Prestani pratiti';
+            button.classList.add('following');
+        } else {
+            button.textContent = 'Prati';
+            button.classList.remove('following');
+        }
+        button.disabled = false;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        button.textContent = originalText;
+        button.disabled = false;
+        
+        // Show error message to user
+        alert('Došlo je do greške. Molimo pokušajte ponovo.');
+    });
+}
+</script>
+{% endblock %}

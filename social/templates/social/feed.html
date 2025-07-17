@@ -4,198 +4,18 @@
 {% block title %}Social Feed{% endblock %}
 
 {% block extra_css %}
-<style>
-.social-feed-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 2rem;
-}
-
-.feed-main {
-    background: var(--bg-elevated);
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.feed-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.sidebar-card {
-    background: var(--bg-elevated);
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.activity-item {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--ui-border);
-    transition: background-color 0.2s;
-}
-
-.activity-item:hover {
-    background-color: rgba(255, 255, 255, 0.02);
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-}
-
-.activity-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.activity-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--spotify-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: var(--bg-primary);
-}
-
-.activity-avatar img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.activity-meta {
-    flex: 1;
-}
-
-.activity-username {
-    font-weight: 600;
-    color: var(--text-primary);
-    text-decoration: none;
-}
-
-.activity-username:hover {
-    text-decoration: underline;
-}
-
-.activity-time {
-    font-size: 0.875rem;
-    color: var(--text-subdued);
-}
-
-.activity-content {
-    margin-left: 58px;
-    color: var(--text-secondary);
-}
-
-.activity-playlist,
-.activity-song {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(30, 215, 96, 0.1);
-    border-radius: 8px;
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: all 0.2s;
-}
-
-.activity-playlist:hover,
-.activity-song:hover {
-    background: rgba(30, 215, 96, 0.2);
-    transform: translateY(-2px);
-}
-
-.suggested-user,
-.trending-playlist {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-}
-
-.suggested-user-info,
-.trending-playlist-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex: 1;
-}
-
-.suggested-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--spotify-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    font-weight: bold;
-    color: var(--bg-primary);
-}
-
-.follow-btn {
-    padding: 0.5rem 1rem;
-    background: var(--spotify-green);
-    color: var(--bg-primary);
-    border: none;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.follow-btn:hover {
-    background: var(--spotify-green-hover);
-    transform: scale(1.05);
-}
-
-.follow-btn.following {
-    background: transparent;
-    color: var(--spotify-green);
-    border: 1px solid var(--spotify-green);
-}
-
-.empty-feed {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--text-subdued);
-}
-
-.empty-feed i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-@media (max-width: 768px) {
-    .social-feed-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .feed-sidebar {
-        order: -1;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'styles/feed.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="social-feed-container">
     <div class="feed-main">
-        <h2>Activity Feed</h2>
+        <div class="feed-header">
+            <h2>
+                Aktivnosti
+            </h2>
+            <p class="feed-subtitle">Pratite što rade vaši prijatelji i otkrivajte novu glazbu</p>
+        </div>
         
         {% if activities %}
             <div class="activities-list">
@@ -221,7 +41,7 @@
                         
                         <div class="activity-content">
                             {% if activity.activity_type == 'playlist_created' %}
-                                Created a new playlist
+                                <strong>Kreirao je novu playlistu</strong>
                                 {% if activity.playlist %}
                                     <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
                                         <i class="fas fa-music"></i>
@@ -230,7 +50,7 @@
                                 {% endif %}
                                 
                             {% elif activity.activity_type == 'playlist_followed' %}
-                                Started following playlist
+                                <strong>Počeo je pratiti playlistu</strong>
                                 {% if activity.playlist %}
                                     <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
                                         <i class="fas fa-music"></i>
@@ -239,7 +59,7 @@
                                 {% endif %}
                                 
                             {% elif activity.activity_type == 'song_added' %}
-                                Added a song to
+                                <strong>Dodao je pjesmu u playlistu</strong>
                                 {% if activity.playlist %}
                                     <a href="{% url 'music:playlist_detail' activity.playlist.id %}" class="activity-playlist">
                                         <i class="fas fa-music"></i>
@@ -248,7 +68,7 @@
                                 {% endif %}
                                 
                             {% elif activity.activity_type == 'user_followed' %}
-                                Started following
+                                <strong>Počeo je pratiti korisnika</strong>
                                 {% if activity.target_user %}
                                     <a href="{% url 'accounts:profile_view' activity.target_user.username %}" class="activity-username">
                                         @{{ activity.target_user.username }}
@@ -271,7 +91,10 @@
     <div class="feed-sidebar">
         <!-- Suggested Users -->
         <div class="sidebar-card">
-            <h3>Popularni korisnici</h3>
+            <h3>
+                <i class="fas fa-user-friends"></i>
+                Popularni korisnici
+            </h3>
             {% for user in suggested_users %}
                 <div class="suggested-user">
                     <div class="suggested-user-info">
@@ -283,10 +106,10 @@
                             {% endif %}
                         </a>
                         <div>
-                            <a href="{% url 'accounts:profile_view' user.username %}" style="color: var(--text-primary); text-decoration: none;">
+                            <a href="{% url 'accounts:profile_view' user.username %}">
                                 {{ user.username }}
                             </a>
-                            <div style="font-size: 0.875rem; color: var(--text-subdued);">
+                            <div>
                                 {{ user.followers_count }} pratitelja
                             </div>
                         </div>
@@ -296,40 +119,75 @@
                     </button>
                 </div>
             {% empty %}
-                <p style="color: var(--text-subdued); font-size: 0.875rem;">Nema korsnika</p>
+                <div class="empty-sidebar">
+                    <i class="fas fa-users"></i>
+                    <p>Nema korisnika za preporučivanje</p>
+                </div>
             {% endfor %}
         </div>
         
         <!-- Trending Playlists -->
         <div class="sidebar-card">
-            <h3>Playliste u trendu🔥</h3>
+            <h3>
+                <i class="fas fa-fire"></i>
+                Playliste u trendu
+            </h3>
             {% for playlist in trending_playlists %}
                 <div class="trending-playlist">
                     <div class="trending-playlist-info">
-                        <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--ui-border); overflow: hidden;">
+                        <div class="trending-playlist-cover">
                             {% if playlist.songs.first.photo %}
-                                <img src="{{ playlist.songs.first.photo }}" alt="{{ playlist.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="{{ playlist.songs.first.photo }}" alt="{{ playlist.name }}">
                             {% endif %}
                         </div>
                         <div>
-                            <a href="{% url 'music:playlist_detail' playlist.id %}" style="color: var(--text-primary); text-decoration: none;">
+                            <a href="{% url 'music:playlist_detail' playlist.id %}">
                                 {{ playlist.name|truncatechars:20 }}
                             </a>
-                            <div style="font-size: 0.875rem; color: var(--text-subdued);">
+                            <div>
                                 by {{ playlist.user.username }}
                             </div>
                         </div>
                     </div>
                 </div>
             {% empty %}
-                <p style="color: var(--text-subdued); font-size: 0.875rem;">Nista nije u trendu</p>
+                <div class="empty-sidebar">
+                    <i class="fas fa-fire"></i>
+                    <p>Nišsta nije trenutno u trendu</p>
+                </div>
             {% endfor %}
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="sidebar-card">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Brze statistike
+            </h3>
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ activities|length }}</div>
+                    <div class="stat-label">Aktivnosti danas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ suggested_users|length }}</div>
+                    <div class="stat-label">Novi korisnici</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ trending_playlists|length }}</div>
+                    <div class="stat-label">Trending playliste</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 function followUser(username, button) {
+    const originalText = button.textContent;
+    button.textContent = 'Loading...';
+    button.disabled = true;
+    
     fetch(`/social/follow/user/${username}/`, {
         method: 'POST',
         headers: {
@@ -340,14 +198,92 @@ function followUser(username, button) {
     .then(response => response.json())
     .then(data => {
         if (data.following) {
-            button.textContent = 'Following';
+            button.textContent = 'Pratite';
             button.classList.add('following');
         } else {
-            button.textContent = 'Follow';
+            button.textContent = 'Prati';
             button.classList.remove('following');
         }
+        button.disabled = false;
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        button.textContent = originalText;
+        button.disabled = false;
+    });
 }
+
+// Add loading animation to activity items
+document.addEventListener('DOMContentLoaded', function() {
+    const activityItems = document.querySelectorAll('.activity-item');
+    
+    activityItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.style.animation = 'slideInFade 0.6s ease forwards';
+    });
+});
 </script>
+
+<style>
+@keyframes slideInFade {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(30, 215, 96, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(30, 215, 96, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(30, 215, 96, 0.2);
+    transform: translateY(-2px);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--spotify-green);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-subdued);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.activity-item {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+@media (max-width: 768px) {
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-item {
+        padding: 0.75rem;
+    }
+}
+</style>
 {% endblock %}

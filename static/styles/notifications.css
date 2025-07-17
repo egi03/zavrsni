@@ -1,0 +1,159 @@
+.notifications-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.notifications-header h1 {
+    margin: 0;
+}
+
+.mark-read-btn {
+    background: transparent;
+    border: 1px solid var(--ui-border);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mark-read-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--spotify-green);
+    color: var(--spotify-green);
+}
+
+.notifications-list {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--ui-border);
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.unread {
+    background-color: rgba(30, 215, 96, 0.05);
+    border-left: 3px solid var(--spotify-green);
+}
+
+.notification-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+}
+
+.notification-icon.follow {
+    background: rgba(30, 215, 96, 0.2);
+    color: var(--spotify-green);
+}
+
+.notification-icon.message {
+    background: rgba(29, 155, 240, 0.2);
+    color: #1d9bf0;
+}
+
+.notification-icon.playlist {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+}
+
+.notification-icon.mention {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-text {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+}
+
+.notification-text a {
+    color: var(--spotify-green);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.notification-text a:hover {
+    text-decoration: underline;
+}
+
+.notification-time {
+    font-size: 0.875rem;
+    color: var(--text-subdued);
+}
+
+.notification-action {
+    margin-left: 1rem;
+}
+
+.notification-action button {
+    padding: 0.5rem 1rem;
+    background: var(--spotify-green);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-action button:hover {
+    background: var(--spotify-green-hover);
+    transform: scale(1.05);
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-subdued);
+}
+
+.empty-notifications i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.notification-badge {
+    display: inline-block;
+    background: #ff4444;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}

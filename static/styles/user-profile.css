@@ -165,11 +165,44 @@ body {
   gap: 1rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+  padding: 0 8px; /* Add padding to prevent cutoff of clickable items */
+  margin-left: -8px;
+  margin-right: -8px;
 }
 
 .stat-item {
   color: var(--text-secondary);
   font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.stat-item.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  color: var(--text-secondary); /* Ensure proper color inheritance */
+}
+
+.stat-item.clickable:hover {
+  color: var(--spotify-green);
+  background: rgba(30, 215, 96, 0.1);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.stat-item.clickable:hover strong {
+  color: var(--spotify-green);
+}
+
+.stat-item.clickable:visited {
+  color: var(--text-secondary);
+}
+
+.stat-item.clickable:active {
+  transform: translateY(0);
 }
 
 .stat-item strong {
@@ -199,7 +232,7 @@ body {
 .btn-follow {
   background: var(--spotify-green);
   color: var(--bg-primary);
-  border: none;
+  border: 2px solid var(--spotify-green);
   padding: 12px 32px;
   border-radius: 500px;
   font-weight: 600;
@@ -211,11 +244,112 @@ body {
   gap: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-follow:hover {
   background: var(--spotify-green-hover);
   transform: scale(1.05);
+}
+
+.btn-follow.following {
+  background: transparent;
+  color: var(--spotify-green);
+  border: 2px solid var(--spotify-green);
+}
+
+.btn-follow.following:hover {
+  background: #ff4444;
+  color: white;
+  border-color: #ff4444;
+}
+
+.btn-follow.following:hover .fas {
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.btn-follow:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-follow:disabled:hover {
+  transform: none;
+}
+
+.btn-follow .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+.btn-message {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--spotify-green);
+  padding: 12px 24px;
+  border-radius: 500px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-message::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(30, 215, 96, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-message:hover {
+  background: var(--spotify-green);
+  color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3);
+}
+
+.btn-message:hover::before {
+  left: 100%;
+}
+
+.btn-message:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-message:disabled:hover {
+  background: transparent;
+  color: var(--text-primary);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-message .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .btn-share,
@@ -478,6 +612,8 @@ body {
   
   .profile-actions {
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
   
   .profile-content {
@@ -512,6 +648,15 @@ body {
   
   .btn-follow {
     padding: 10px 24px;
+    font-size: 0.85rem;
+  }
+  
+  .btn-follow.following:hover .fas {
+    animation: none;
+  }
+  
+  .btn-message {
+    padding: 10px 20px;
     font-size: 0.85rem;
   }
   
