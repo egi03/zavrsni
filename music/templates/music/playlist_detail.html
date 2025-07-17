@@ -233,6 +233,36 @@
         <i class="fas fa-chevron-down"></i>
       </div>
     </div>
+
+    {% endif %}
+
+
+
+
+      {% if playlist.is_public or request.user == playlist.user %}
+  <div class="playlist-comments-section">
+    <h2>Komentari</h2>
+
+    {% if request.user.is_authenticated %}
+      <form id="commentForm" class="comment-form">
+        <textarea id="commentInput" placeholder="Dodaj komentar..." rows="3"></textarea>
+        <button type="submit">Pošalji</button>
+      </form>
+    {% endif %}
+
+    <div id="commentsList" class="comments-list">
+      {% for comment in playlist.comments.all %}
+        <div class="comment-item">
+          <div class="comment-header">
+            <a href="{% url 'accounts:profile_view' comment.user.username %}">
+              {{ comment.user.username }}
+            </a>
+            <span class="comment-time">{{ comment.created_at|timesince }} ago</span>
+          </div>
+          <div class="comment-content">{{ comment.content }}</div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
 {% else %}
   <div class="songs-empty">
@@ -247,6 +277,26 @@
   window.playlistIdFromTemplate = "{{ playlist.id }}";
   window.recommendationsAvailable = {{ recommendations_available|yesno:"true,false" }};
   window.hasEnoughSongsForRecommendations = {{ has_enough_songs_for_recommendations|yesno:"true,false" }};
+
+  document.getElementById('commentForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = document.getElementById('commentInput').value.trim();
+      if (!content) return;
+      
+      const response = await fetch(`/social/playlist/{{ playlist.id }}/comment/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ content })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+          location.reload();
+      }
+  });
 </script>
 
 <script src="{% static 'scripts/song-search.js' %}"></script>
