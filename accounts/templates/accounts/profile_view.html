@@ -171,7 +171,6 @@
             const btn = document.getElementById('followBtn');
             const originalContent = btn.innerHTML;
             
-            // Show loading state
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Molimo pričekajte...';
             btn.disabled = true;
             
@@ -184,31 +183,53 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.following) {
-                    btn.innerHTML = '<i class="fas fa-user-check"></i> Pratite';
-                    btn.classList.add('following');
-                } else {
-                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Prati';
-                    btn.classList.remove('following');
-                }
-                
-                // Update followers count in the stats
-                const followersLinks = document.querySelectorAll('.stat-item.clickable');
-                followersLinks.forEach(link => {
-                    if (link.textContent.includes('Pratitelja')) {
-                        const strongElement = link.querySelector('strong');
-                        if (strongElement) {
-                            strongElement.textContent = data.followers_count || 0;
+                if (data.following !== undefined) {
+                    if (data.following) {
+                        btn.innerHTML = '<i class="fas fa-user-check"></i> Pratite';
+                        btn.classList.add('following');
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-user-plus"></i> Prati';
+                        btn.classList.remove('following');
+                    }
+                    
+                    const followersLinks = document.querySelectorAll('.stat-item.clickable');
+                    followersLinks.forEach(link => {
+                        if (link.textContent.includes('Pratitelja')) {
+                            const strongElement = link.querySelector('strong');
+                            if (strongElement) {
+                                strongElement.textContent = data.followers_count || 0;
+                            }
+                        }
+                    });
+                    
+                    if (data.message) {
+                        if (typeof globalMessages !== 'undefined') {
+                            globalMessages.success(data.message);
+                        } else if (typeof showGlobalMessage !== 'undefined') {
+                            showGlobalMessage(data.message, 'success');
+                        } else {
+                            alert(data.message);
                         }
                     }
-                });
-                
-                btn.disabled = false;
+                    
+                    btn.disabled = false;
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
+                
+                const errorMessage = error.message || 'Dogodila se greška prilikom praćenja korisnika';
+                if (typeof globalMessages !== 'undefined') {
+                    globalMessages.error(errorMessage);
+                } else if (typeof showGlobalMessage !== 'undefined') {
+                    showGlobalMessage(errorMessage, 'error');
+                } else {
+                    alert(errorMessage);
+                }
             });
         }
 

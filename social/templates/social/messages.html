@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
+{% load conversation_filters %}
 
 {% block title %}Poruke{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'styles/messages.css' %}">
 {% endblock %}
-
 
 {% block content %}
 <div class="messages-container">
@@ -21,12 +21,7 @@
     {% if conversations %}
         <div class="conversations-list">
             {% for conversation in conversations %}
-                {% with other_user=conversation.participants.first %}
-                    {% if other_user != request.user %}
-                        {% with other_user=conversation.participants.last %}
-                        {% endwith %}
-                    {% endif %}
-                    
+                {% with other_user=conversation|get_other_participant:request.user %}
                     <a href="{% url 'social:conversation' conversation.id %}" 
                        class="conversation-item {% if conversation.messages.first and not conversation.messages.first.is_read and conversation.messages.first.sender != request.user %}unread{% endif %}">
                         
@@ -73,10 +68,6 @@
             <i class="fas fa-comments"></i>
             <h3>Nema poruka</h3>
             <p>Kada započnete razgovor, pojavit će se ovdje</p>
-            <button class="new-message-btn" onclick="openNewMessageModal()" style="margin-top: 1rem;">
-                <i class="fas fa-plus"></i>
-                Započni razgovor
-            </button>
         </div>
     {% endif %}
 </div>

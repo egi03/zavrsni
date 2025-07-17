@@ -153,22 +153,41 @@ function toggleFollow(username, button) {
         return response.json();
     })
     .then(data => {
-        if (data.following) {
-            button.textContent = 'Prestani pratiti';
-            button.classList.add('following');
+        if (data.following !== undefined) {
+            if (data.following) {
+                button.textContent = 'Prestani pratiti';
+                button.classList.add('following');
+            } else {
+                button.textContent = 'Prati';
+                button.classList.remove('following');
+            }
+            
+            if (data.message) {
+                if (typeof globalMessages !== 'undefined') {
+                    globalMessages.success(data.message);
+                } else if (typeof showGlobalMessage !== 'undefined') {
+                    showGlobalMessage(data.message, 'success');
+                }
+            }
+            
+            button.disabled = false;
         } else {
-            button.textContent = 'Prati';
-            button.classList.remove('following');
+            throw new Error(data.error || 'Unknown error occurred');
         }
-        button.disabled = false;
     })
     .catch(error => {
         console.error('Error:', error);
         button.textContent = originalText;
         button.disabled = false;
         
-        // Show error message to user
-        alert('Došlo je do greške. Molimo pokušajte ponovo.');
+        const errorMessage = error.message || 'Došlo je do greške. Molimo pokušajte ponovo.';
+        if (typeof globalMessages !== 'undefined') {
+            globalMessages.error(errorMessage);
+        } else if (typeof showGlobalMessage !== 'undefined') {
+            showGlobalMessage(errorMessage, 'error');
+        } else {
+            alert(errorMessage);
+        }
     });
 }
 </script>
