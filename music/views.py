@@ -24,7 +24,7 @@ def homepage(request):
 
 @login_required
 def playlists(request):
-    user_playlists = Playlist.objects.filter(user=request.user)
+    user_playlists = Playlist.objects.filter(user=request.user).prefetch_related('songs')
     return render(request, 'music/playlists.html', {'playlists': user_playlists})
 
 @login_required

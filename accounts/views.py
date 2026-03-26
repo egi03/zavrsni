@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Count
 from .forms import UserRegistrationForm, EmailOrUsernameAuthenticationForm
 from .models import UserProfile
 from music.models import Playlist
@@ -114,9 +115,11 @@ def profile_view(request, username):
         messages.error(request, 'Korisnik nije pronađen.')
         return redirect('accounts:profile')
     
-    playlists = Playlist.objects.filter(user=profile_user, is_public=True)
-    
-    total_songs = sum(playlist.songs.count() for playlist in playlists)
+    playlists = Playlist.objects.filter(user=profile_user, is_public=True).annotate(
+        song_count=Count('songs')
+    )
+
+    total_songs = sum(p.song_count for p in playlists)
     
     is_following = False
     if request.user.is_authenticated and request.user != profile_user:
@@ -140,8 +143,8 @@ def search_profiles(request):
     if len(query) < 2:
         return JsonResponse({'users': []})
     
-    users = UserProfile.objects.filter(user__username__icontains=query)
-    
+    users = UserProfile.objects.filter(user__username__icontains=query).select_related('user')
+
     user_data = []
     for user in users:
         user_data.append({
