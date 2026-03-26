@@ -134,6 +134,34 @@ def compute_score_distribution(strategy: str = 'balanced') -> Dict[str, Any]:
     }
 
 
+def compute_user_acceptance_rate(strategy: str = 'balanced') -> Dict[str, Any]:
+    """Compute the fraction of recommendations that users actually added to their playlists.
+
+    This is the most direct offline proxy for recommendation quality — it measures
+    whether users found the suggestions useful enough to act on.
+
+    Args:
+        strategy: Recommendation strategy to evaluate. Defaults to 'balanced'.
+
+    Returns:
+        Dict with total_recommendations, accepted_count, acceptance_rate_pct, and strategy.
+    """
+    from recommendations.models import HybridRecommendation, RecommendationFeedback
+
+    total = HybridRecommendation.objects.filter(strategy=strategy).count()
+    accepted = RecommendationFeedback.objects.filter(
+        recommendation__strategy=strategy,
+        action='added',
+    ).count()
+
+    return {
+        'strategy': strategy,
+        'total_recommendations': total,
+        'accepted_count': accepted,
+        'acceptance_rate_pct': round(accepted / total * 100, 2) if total > 0 else 0.0,
+    }
+
+
 def run_full_evaluation() -> Dict[str, Dict[str, Any]]:
     """Run all catalog-level metrics for all recommendation strategies.
 
@@ -148,7 +176,13 @@ def run_full_evaluation() -> Dict[str, Dict[str, Any]]:
             'coverage': compute_catalog_coverage(strategy),
             'popularity_bias': compute_popularity_bias(strategy),
             'score_distribution': compute_score_distribution(strategy),
+            'user_acceptance': compute_user_acceptance_rate(strategy),
         }
-        logger.info("Evaluated strategy '%s': coverage=%.1f%%", strategy, results[strategy]['coverage']['coverage_pct'])
+        logger.info(
+            "Evaluated strategy '%s': coverage=%.1f%%, acceptance=%.1f%%",
+            strategy,
+            results[strategy]['coverage']['coverage_pct'],
+            results[strategy]['user_acceptance']['acceptance_rate_pct'],
+        )
 
     return results

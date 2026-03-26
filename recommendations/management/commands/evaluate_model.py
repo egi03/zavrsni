@@ -65,6 +65,12 @@ class Command(BaseCommand):
                     f"mean={sp['mean']:.1f}  median={sp['median']:.1f}"
                 )
 
+            acc = data['user_acceptance']
+            self.stdout.write(
+                f"  Acceptance rate: {acc['accepted_count']}/{acc['total_recommendations']} "
+                f"({acc['acceptance_rate_pct']}%)"
+            )
+
         if options['retrain']:
             test_pct = int(options['test_fraction'] * 100)
             self.stdout.write(
