@@ -1,29 +1,33 @@
-import requests
 import base64
-from urllib.parse import urlencode
-from django.utils import timezone
+import logging
+import time
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+from urllib.parse import urlencode
+
+import requests
+import spotipy
 from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
-from .models import SpotifyToken
-import time
-
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from django.utils import timezone
 from spotipy.exceptions import SpotifyException
+from spotipy.oauth2 import SpotifyClientCredentials
 
-import logging
+from .models import SpotifyToken
+
 logger = logging.getLogger(__name__)
 
 SPOTIFY_CLIENT_ID = getattr(settings, 'SPOTIFY_CLIENT_ID', '')
 SPOTIFY_CLIENT_SECRET = getattr(settings, 'SPOTIFY_CLIENT_SECRET', '')
 
 class SpotifyClientManager:
+    """Singleton that manages a Spotipy client with automatic token refresh."""
+
     _instance = None
     _client = None
     _token_expires_at = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -70,9 +74,21 @@ class SpotifyClientManager:
 spotify_manager = SpotifyClientManager()
 
 def get_spotify_client():
+    """Return the shared Spotipy client, refreshing the token if needed."""
     return spotify_manager.get_client()
 
-def search_songs(query, limit=5):
+
+def search_songs(query: str, limit: int = 5) -> List[Dict]:
+    """Search Spotify for tracks matching a query string.
+
+    Args:
+        query: Free-text search query.
+        limit: Maximum number of results to return (Spotify max: 50).
+
+    Returns:
+        List of track dicts with id, name, artist, album, year, album_image, uri.
+        Returns an empty list on error.
+    """
     max_retries = 3
     retry_delay = 1
     
@@ -116,7 +132,16 @@ def search_songs(query, limit=5):
     
     return []
 
-def get_track(track_id):
+def get_track(track_id: str) -> Optional[Dict]:
+    """Fetch a single track from Spotify by its ID.
+
+    Args:
+        track_id: Spotify track ID (22-char string).
+
+    Returns:
+        Dict with id, name, artist, album, year, album_image, preview_url, popularity, uri.
+        Returns None on error.
+    """
     max_retries = 3
     retry_delay = 1
     
@@ -157,7 +182,15 @@ def get_track(track_id):
     
     return None
 
-def get_track_audio_features(track_id):
+def get_track_audio_features(track_id: str) -> Optional[Dict]:
+    """Fetch Spotify audio features for a track (cached for 1 hour).
+
+    Args:
+        track_id: Spotify track ID.
+
+    Returns:
+        Audio features dict (energy, valence, danceability, etc.) or None on error.
+    """
     if not track_id:
         logger.warning("No track_id provided")
         return None
@@ -212,7 +245,15 @@ def get_track_audio_features(track_id):
     
     return None
 
-def get_multiple_track_audio_features(track_ids):
+def get_multiple_track_audio_features(track_ids: List[str]) -> Dict[str, Dict]:
+    """Fetch audio features for multiple tracks in batches of 100.
+
+    Args:
+        track_ids: List of Spotify track IDs.
+
+    Returns:
+        Dict mapping track_id to its audio features dict. Missing tracks are omitted.
+    """
     if not track_ids:
         return {}
     

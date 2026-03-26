@@ -11,12 +11,24 @@ logger = logging.getLogger(__name__)
 LASTFM_API_BASE_URL = 'http://ws.audioscrobbler.com/2.0/'
 LASTFM_API_KEY = getattr(settings, 'LASTFM_API_KEY', '')
 
-class LastFMAPI:    
-    def __init__(self):
+class LastFMAPI:
+    """Thin wrapper around the Last.fm REST API with caching and retry logic."""
+
+    def __init__(self) -> None:
+        """Initialize with API credentials from Django settings."""
         self.api_key = LASTFM_API_KEY
         self.base_url = LASTFM_API_BASE_URL
-        
+
     def _make_request(self, method: str, params: Dict) -> Optional[Dict]:
+        """Execute a Last.fm API call with exponential-backoff retry.
+
+        Args:
+            method: Last.fm API method name (e.g. 'track.getInfo').
+            params: Query parameters (api_key and format are added automatically).
+
+        Returns:
+            Parsed JSON response dict, or None on error.
+        """
         if not self.api_key:
             logger.error("Last.fm API key not configured")
             return None
@@ -57,6 +69,15 @@ class LastFMAPI:
         return None
     
     def get_track_info(self, artist: str, track: str) -> Optional[Dict]:
+        """Fetch track metadata from Last.fm (cached for 24 hours).
+
+        Args:
+            artist: Artist name.
+            track: Track title.
+
+        Returns:
+            Track info dict from Last.fm, or None if not found.
+        """
         cache_key = f"lastfm_track_{hashlib.md5(f'{artist}_{track}'.encode()).hexdigest()}"
         cached = cache.get(cache_key)
         if cached:
@@ -76,6 +97,15 @@ class LastFMAPI:
         return None
     
     def get_track_tags(self, artist: str, track: str) -> List[Dict]:
+        """Fetch top tags for a track from Last.fm (cached for 24 hours).
+
+        Args:
+            artist: Artist name.
+            track: Track title.
+
+        Returns:
+            List of tag dicts with 'name' and 'count' keys.
+        """
         cache_key = f"lastfm_tags_{hashlib.md5(f'{artist}_{track}'.encode()).hexdigest()}"
         cached = cache.get(cache_key)
         if cached:
@@ -162,7 +192,15 @@ class LastFMAPI:
         return []
     
     def search_track(self, query: str, limit: int = 10) -> List[Dict]:
-        """Search for tracks on Last.fm"""
+        """Search for tracks on Last.fm by free-text query.
+
+        Args:
+            query: Search string (track name or artist + track).
+            limit: Maximum number of results to return.
+
+        Returns:
+            List of track match dicts from Last.fm.
+        """
         params = {
             'track': query,
             'limit': str(limit)
@@ -180,7 +218,15 @@ class LastFMAPI:
 lastfm_api = LastFMAPI()
 
 def get_track_tags_with_weights(artist: str, track: str) -> Dict[str, float]:
-    """Get track tags with normalized weights"""
+    """Return normalized tag weights for a track (0.0–1.0, relative to the highest tag count).
+
+    Args:
+        artist: Artist name.
+        track: Track title.
+
+    Returns:
+        Dict mapping lowercase tag name to normalized weight.
+    """
     tags = lastfm_api.get_track_tags(artist, track)
     
     tag_weights = {}
@@ -200,6 +246,15 @@ def get_track_tags_with_weights(artist: str, track: str) -> Dict[str, float]:
     return tag_weights
 
 def calculate_tag_similarity(tags1: Dict[str, float], tags2: Dict[str, float]) -> float:
+    """Compute weighted Jaccard similarity between two tag-weight dicts.
+
+    Args:
+        tags1: First tag-weight mapping.
+        tags2: Second tag-weight mapping.
+
+    Returns:
+        Similarity score in [0.0, 1.0].
+    """
     if not tags1 or not tags2:
         return 0.0
     
@@ -240,6 +295,14 @@ def enrich_song_with_lastfm_data(song) -> bool:
     return False
 
 def batch_enrich_songs_with_lastfm(songs: List) -> int:
+    """Enrich a list of songs with Last.fm data, throttling to avoid rate limits.
+
+    Args:
+        songs: List of Song instances to enrich.
+
+    Returns:
+        Number of songs successfully enriched.
+    """
     enriched_count = 0
     
     for i, song in enumerate(songs):
