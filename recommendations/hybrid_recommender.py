@@ -153,7 +153,7 @@ class HybridRecommender:
             spotify_score = (song.popularity / 100) if song.popularity else 0.3
             
             if song.lastfm_listeners:
-                lastfm_score = min(song.lastfm_listeners, 1000000, 1.0)
+                lastfm_score = min(song.lastfm_listeners / 1000000, 1.0)
                 scores[song.id] = (spotify_score * 0.5 + lastfm_score * 0.5)
             else:
                 scores[song.id] = spotify_score
