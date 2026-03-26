@@ -245,7 +245,7 @@ class LastFMContentRecommender:
             if song.id in combined:
                 # Average the scores if song appears in both
                 existing_song, existing_score = combined[song.id]
-                combined[song.id] = (song, (existing_score + score * 0.4) / 2)
+                combined[song.id] = (song, existing_score + score * 0.4)
             else:
                 combined[song.id] = (song, score * 0.4)  # 40% weight for API-based
         
