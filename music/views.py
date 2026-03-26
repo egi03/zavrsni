@@ -1,11 +1,16 @@
-from django.shortcuts import get_object_or_404, render, redirect
+import json
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.core.cache import cache
-import json
-from .models import Song, Playlist
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .models import Playlist, Song
 from spotify.utils import get_track, get_track_audio_features, search_songs as spotify_search_songs
+
+logger = logging.getLogger(__name__)
 
 try:
     from recommendations.hybrid_recommender import HybridRecommender
@@ -102,7 +107,7 @@ def get_playlist_recommendations(playlist, strategy='balanced', limit=8):
         return []
             
     except Exception as e:
-        print(f"Error getting recommendations: {e}")
+        logger.error("Error getting recommendations for playlist %s: %s", playlist.id, e)
         return []
 
 
@@ -122,9 +127,6 @@ def refresh_recommendations(request, playlist_id):
         return JsonResponse({'error': 'Recommendations not available'}, status=503)
     
     try:
-        import logging
-        logger = logging.getLogger(__name__)
-        
         data = json.loads(request.body) if request.body else {}
         strategy = data.get('strategy', 'balanced')
         
@@ -169,13 +171,10 @@ def refresh_recommendations(request, playlist_id):
         
     except Exception as e:
         import traceback
-        logger.error(f"Critical error in refresh_recommendations: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        
-        return JsonResponse({
-            'error': f'Server error: {str(e)}',
-            'debug_info': str(e)
-        }, status=500)
+        logger.error("Critical error in refresh_recommendations for playlist %s: %s", playlist_id, e)
+        logger.error("Traceback: %s", traceback.format_exc())
+
+        return JsonResponse({'error': 'Server error', 'success': False}, status=500)
 
 
 @login_required
@@ -191,27 +190,32 @@ def add_recommended_song(request, playlist_id):
     
     try:
         data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    try:
         song_id = data.get('song_id')
-        
+
         if not song_id:
             return JsonResponse({'error': 'Song ID required'}, status=400)
-        
+
         song = get_object_or_404(Song, id=song_id)
-        
+
         if song in playlist.songs.all():
             return JsonResponse({'error': 'Song already in playlist'}, status=400)
-        
+
         playlist.songs.add(song)
-        
+
         # Clear recommendations cache to refresh after adding
         for strategy in ['balanced', 'discovery', 'popular']:
             cache_key = f'playlist_recommendations_{playlist.id}_{strategy}'
             cache.delete(cache_key)
-        
+
         return JsonResponse({'success': True, 'message': 'Song added to playlist'})
-        
+
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error("Error in add_recommended_song for playlist %s: %s", playlist_id, e)
+        return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
 @login_required
@@ -261,10 +265,14 @@ def add_to_playlist(request, playlist_id):
     
     try:
         data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'success': False, 'error': 'Invalid JSON body'}, status=400)
+
+    try:
         song_id = data.get('song_id')
-        
+
         if not song_id:
-            return JsonResponse({'success': False, 'error': "Invalid song id"})
+            return JsonResponse({'success': False, 'error': 'Invalid song id'})
         
         try:
             song = Song.objects.get(spotify_id=song_id)
@@ -279,7 +287,7 @@ def add_to_playlist(request, playlist_id):
                 try:
                     audio_features = get_track_audio_features(song_id)
                 except Exception as feature_error:
-                    print(f"Error fetching audio features: {feature_error}")
+                    logger.warning("Error fetching audio features for %s: %s", song_id, feature_error)
                 
                 song = Song.objects.create(
                     name=track.get('name', 'Unknown name'),
@@ -304,7 +312,7 @@ def add_to_playlist(request, playlist_id):
                     song.valence = audio_features.get('valence', 0.0)
                     song.save()
             except Exception as track_error:
-                print(f"Error fetching track: {track_error}")
+                logger.error("Error fetching track %s: %s", song_id, track_error)
                 return JsonResponse({'success': False, 'error': 'Unknown song info'})
         
         if song in playlist.songs.all():
@@ -325,8 +333,8 @@ def add_to_playlist(request, playlist_id):
         })
     
     except Exception as e:
-        print("Error: ", str(e))
-        return JsonResponse({'success': False, 'error': str(e)})
+        logger.error("Error in add_to_playlist for playlist %s: %s", playlist_id, e)
+        return JsonResponse({'success': False, 'error': 'Internal server error'})
 
 
 @login_required
