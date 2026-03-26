@@ -1,23 +1,27 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.urls import reverse
-from django.http import JsonResponse
-from django.utils import timezone
-from datetime import timedelta
 import json
+import logging
+from datetime import timedelta
 
-from .models import SpotifyToken, SpotifyPlaylistImport
-from .utils import SpotifyAPI
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils import timezone
+
 from music.models import Playlist, Song
+from .models import SpotifyPlaylistImport, SpotifyToken
+from .utils import SpotifyAPI
+
+logger = logging.getLogger(__name__)
 
 
-@login_required  
+@login_required
 def connect_spotify(request):
     spotify_api = SpotifyAPI()
     redirect_uri = request.build_absolute_uri(reverse('spotify:callback'))
-    print(f"DEBUG: Redirect URI being sent to Spotify: {redirect_uri}")
-    
+    logger.debug("Redirect URI being sent to Spotify: %s", redirect_uri)
+
     auth_url = spotify_api.get_auth_url(request)
     return redirect(auth_url)
 
