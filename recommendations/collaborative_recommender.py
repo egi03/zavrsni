@@ -61,8 +61,11 @@ class PlaylistRecommender:
                     'rating': 1.0  # Implicit feedback: interaction exists
                 })
         
+        if not interactions:
+            return np.array([]), np.array([]), np.array([])
+
         df = pd.DataFrame(interactions)
-        
+
         # Create encoders for playlists and songs
         unique_playlists = df['playlist_id'].unique()
         unique_songs = df['song_id'].unique()
