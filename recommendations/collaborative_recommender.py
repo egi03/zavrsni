@@ -1,15 +1,19 @@
-import tensorflow as tf
+import logging
+import os
+import pickle
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Tuple, Optional
-from django.db.models import Count
-from recommendations.models import PlaylistRecommendation
-import pickle
-import os
+import tensorflow as tf
 from django.conf import settings
-from datetime import datetime, timedelta
 from django.utils import timezone
+
 from music.models import Playlist, Song
+from recommendations.models import PlaylistRecommendation
+
+logger = logging.getLogger(__name__)
 
 class PlaylistRecommender:
     def __init__(self, n_factors=50, learning_rate=0.001, n_epochs=50, batch_size=128):
@@ -128,50 +132,54 @@ class PlaylistRecommender:
         return model
     
     
-    def train(self):
-        """
-        Train the recommendation model on playlist-song interactions
-        
+    def train(self) -> Optional[tf.keras.callbacks.History]:
+        """Train the recommendation model on playlist-song interactions.
+
         Returns:
-            Training history if successful, None if failed
+            Training history object if successful, None if training data is unavailable.
         """
-        print("Preparing data ")
+        logger.info("Preparing training data")
         playlist_indices, song_indices, ratings = self.prepare_data()
-        
+
         if len(playlist_indices) == 0 or len(song_indices) == 0:
-            print("No data")
+            logger.warning("No interaction data available for training")
             return None
-        
+
         n_playlists = len(self.playlist_encoder)
         n_songs = len(self.song_encoder)
-        print(f"Data prepared. Number of playlists: {n_playlists}\nNumber of songs: {n_songs}")
-        
+        logger.info("Data prepared: %d playlists, %d songs", n_playlists, n_songs)
+
         self.model = self.build_model(n_playlists, n_songs)
-        
+
         history = self.model.fit(
             [playlist_indices, song_indices],
             ratings,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             validation_split=0.1,
-            verbose=1
+            verbose=1,
         )
-        
+
         self.save_model()
-        
+
         return history
         
         
-    def save_model(self):
+    def save_model(self) -> None:
+        """Persist the trained Keras model and ID encoders to disk."""
         self.model.save(os.path.join(self.model_path, 'model.keras'))
-        
+
         with open(os.path.join(self.model_path, 'encoders.pkl'), 'wb') as f:
-            pickle.dump({
-                'playlist_encoder': self.playlist_encoder,
-                'song_encoder': self.song_encoder,
-                'playlist_decoder': self.playlist_decoder,
-                'song_decoder': self.song_decoder
-            }, f)
+            pickle.dump(
+                {
+                    'playlist_encoder': self.playlist_encoder,
+                    'song_encoder': self.song_encoder,
+                    'playlist_decoder': self.playlist_decoder,
+                    'song_decoder': self.song_decoder,
+                },
+                f,
+            )
+        logger.info("Model and encoders saved to %s", self.model_path)
     
     
     def load_model(self):
@@ -191,7 +199,7 @@ class PlaylistRecommender:
                 self.song_decoder = encoders['song_decoder']
             return True
         except Exception as e:
-            print(f"Error loading model: {e}")
+            logger.error("Error loading model: %s", e)
             return False
     
     
@@ -225,18 +233,18 @@ class PlaylistRecommender:
         
         if not self.model:
             if not self.load_model():
-                print("NEMA MODELA")
+                logger.warning("No trained model available for recommendations")
                 return []
-        
+
         if playlist_id not in self.playlist_encoder:
-            print(f"Playlist {playlist_id} not in training data")
+            logger.debug("Playlist %d not found in training data", playlist_id)
             return []
         
         playlist_idx = self.playlist_encoder[playlist_id]
         playlist = Playlist.objects.get(id=playlist_id)
         existing_songs_ids = set(playlist.songs.values_list('id', flat=True))
         
-        # Get predscitons for all songs
+        # Get predictions for all songs
         all_songs_indices = np.array(list(range(len(self.song_encoder))))
         playlist_indices = np.full_like(all_songs_indices, playlist_idx)
         
@@ -279,7 +287,7 @@ class PlaylistRecommender:
                     created_at=timezone.now()
                 )
             except Song.DoesNotExist:
-                print(f"Song with ID {song_id} does not exist")
+                logger.warning("Song with ID %d does not exist, skipping", song_id)
                 continue
     
     
@@ -294,4 +302,4 @@ class PlaylistRecommender:
         
         for playlist in playlists:
             self.update_playlist_recommendations(playlist.id, n_recommendations)
-            print(f"Updated recommendations for playlist {playlist.id}")
+            logger.info("Updated recommendations for playlist %d", playlist.id)

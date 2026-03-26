@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 class LastFMContentRecommender:
-    
-    def __init__(self):
+    """Content-based recommender using Last.fm tags and similar-track API."""
+
+    def __init__(self) -> None:
+        """Initialize with tag weight threshold and genre boost factors."""
         self.min_tag_weight = 0.3
         self.tag_boost_factors = {
             'rock': 1.2,
@@ -35,6 +37,14 @@ class LastFMContentRecommender:
         }
     
     def ensure_song_has_tags(self, song: Song) -> bool:
+        """Ensure a song has up-to-date Last.fm tags, enriching if missing or stale.
+
+        Args:
+            song: Song instance to check and optionally enrich.
+
+        Returns:
+            True if the song has tags after the check, False otherwise.
+        """
         if not song.lastfm_tags or (song.lastfm_updated and (timezone.now() - song.lastfm_updated).days > 30):
             return enrich_song_with_lastfm_data(song)
         return bool(song.lastfm_tags)
@@ -79,6 +89,15 @@ class LastFMContentRecommender:
                           key=lambda x: x[1], reverse=True)[:20])
     
     def calculate_song_playlist_similarity(self, song: Song, playlist_profile: Dict[str, float]) -> float:
+        """Compute weighted tag similarity between a song and a playlist tag profile.
+
+        Args:
+            song: Song instance with lastfm_tags populated.
+            playlist_profile: Normalized tag-weight mapping from get_playlist_tag_profile.
+
+        Returns:
+            Similarity score in [0.0, 1.0].
+        """
         if not song.lastfm_tags or not playlist_profile:
             return 0.0
         
@@ -101,6 +120,15 @@ class LastFMContentRecommender:
         return min(similarity, 1.0)
     
     def recommend_by_tags(self, playlist: Playlist, n_recommendations: int = 20) -> List[Tuple[Song, float]]:
+        """Generate tag-similarity recommendations for a playlist.
+
+        Args:
+            playlist: Playlist to generate recommendations for.
+            n_recommendations: Maximum number of results to return.
+
+        Returns:
+            List of (Song, score) tuples sorted by descending score.
+        """
         logger.info(f"Generating tag-based recommendations for playlist {playlist.id}")
         
         playlist_profile = self.get_playlist_tag_profile(playlist)
@@ -145,6 +173,16 @@ class LastFMContentRecommender:
         return recommendations[:n_recommendations]
     
     def find_similar_by_lastfm_api(self, playlist: Playlist, n_recommendations: int = 20) -> List[Tuple[Song, float]]:
+        """Find songs similar to playlist tracks using the Last.fm similar-tracks API.
+
+        Args:
+            playlist: Playlist whose songs seed the similarity search.
+            n_recommendations: Maximum number of results to return.
+
+        Returns:
+            List of (Song, score) tuples for songs already in the database, sorted by
+            descending aggregated similarity score.
+        """
         songs = list(playlist.songs.all())
         if not songs:
             return []
@@ -174,18 +212,16 @@ class LastFMContentRecommender:
         
         # Find these tracks in our database
         recommendations = []
-        
+
         for (artist, track_name), score in similar_tracks_data.items():
-            # Try to find the song in our database
-            songs = Song.objects.filter(
+            matching = Song.objects.filter(
                 artist__iexact=artist,
-                name__iexact=track_name
+                name__iexact=track_name,
             ).exclude(id__in=existing_song_ids)
-            
-            if songs.exists():
-                song = songs.first()
-                # Normalize score
-                normalized_score = min(score / len(songs), 1.0)
+
+            if matching.exists():
+                song = matching.first()
+                normalized_score = min(score / len(similar_tracks_data), 1.0)
                 recommendations.append((song, normalized_score))
         
         recommendations.sort(key=lambda x: x[1], reverse=True)
