@@ -19,33 +19,38 @@ from accounts.models import UserProfile
 @login_required
 def social_feed(request):
     following_users = request.user.following.values_list('following_id', flat=True)
-    
-    activities = Activity.objects.filter(
-        Q(user__in=following_users) | Q(user=request.user)
-        ).select_related('user', 'playlist', 'song', 'target_user').prefetch_related(
-            'user__userprofile')[:50]
 
+    activity_qs = Activity.objects.filter(
+        Q(user__in=following_users) | Q(user=request.user)
+    ).select_related('user', 'playlist', 'song', 'target_user').prefetch_related(
+        'user__userprofile'
+    )
+
+    paginator = Paginator(activity_qs, 20)
+    page = request.GET.get('page', 1)
+    activities = paginator.get_page(page)
 
     popular_users = User.objects.exclude(
         Q(id=request.user.id) | Q(followers__follower=request.user)
     ).annotate(
         followers_count=Count('followers'),
-        playlist_count=Count('playlists')
+        playlist_count=Count('playlists'),
     ).filter(playlist_count__gt=0).order_by('-followers_count')[:5]
-    
-    
+
     trending_playlists = Playlist.objects.filter(
         is_public=True
     ).annotate(
         followers_count=Count('playlist_followers'),
-        recent_activity=Count('activities', filter=Q(activities__created_at__gte=timezone.now() - timezone.timedelta(days=7)))
+        recent_activity=Count(
+            'activities',
+            filter=Q(activities__created_at__gte=timezone.now() - timezone.timedelta(days=7)),
+        ),
     ).order_by('-recent_activity', '-followers_count')[:5]
-    
-    
+
     return render(request, 'social/feed.html', {
         'activities': activities,
         'popular_users': popular_users,
-        'trending_playlists': trending_playlists
+        'trending_playlists': trending_playlists,
     })
 
 @login_required

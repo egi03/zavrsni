@@ -56,19 +56,19 @@ class Command(BaseCommand):
         
         for i in range(0, total_songs, batch_size):
             batch = list(songs[i:i+batch_size])
-            self.stdout.write(f'\Batch: {i//batch_size + 1} ({i+1}-{min(i+batch_size, total_songs)} of {total_songs})')
-            
+            self.stdout.write(f'Batch: {i//batch_size + 1} ({i+1}-{min(i+batch_size, total_songs)} of {total_songs})')
+
             batch_enriched = batch_enrich_songs_with_lastfm(batch)
             enriched += batch_enriched
             processed += len(batch)
-            
+
             self.stdout.write(f'Enriched {batch_enriched} / {len(batch)}')
-            
+
             if i + batch_size < total_songs:
-                self.stdout.write('Wait 2 secondes')
+                self.stdout.write('Waiting 2 seconds before next batch...')
                 time.sleep(2)
-        
-        self.stdout.write(self.style.SUCCESS('\nDONE'))
+
+        self.stdout.write(self.style.SUCCESS('Done'))
         
         songs_with_tags = Song.objects.exclude(lastfm_tags={}).count()
         self.stdout.write(f'\nTotal songs with Last.fm tags: {songs_with_tags}')
