@@ -712,3 +712,88 @@
   .notification:nth-child(3) { top: 160px; }
   .notification-content { font-size: 0.9rem; }
 }
+
+/* ── Recommendation explanation: tags + score breakdown ── */
+
+.rec-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.4rem 0 0.5rem;
+}
+
+.rec-tag {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.rec-why {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.rec-why-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.4rem;
+}
+
+.rec-why-label .fas {
+  margin-right: 0.25rem;
+  font-size: 0.65rem;
+}
+
+.rec-why-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.rec-why-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 2.2rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rec-why-name {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rec-why-bar-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rec-why-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.rec-why-pct {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

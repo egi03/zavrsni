@@ -457,14 +457,52 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!rec || !rec.song) {
             return '';
         }
-        
+
         const scorePercentage = Math.round((rec.score || 0) * 100);
-        
+        const ex = rec.explanation || {};
+
+        // Component breakdown bars
+        const components = [
+            { label: 'Collaborative', key: 'collaborative', color: '#7c6af7' },
+            { label: 'Tag match',     key: 'content_tags',  color: '#4fc3f7' },
+            { label: 'Similarity',    key: 'content_similar', color: '#81c784' },
+            { label: 'Popularity',    key: 'popularity',    color: '#ffb74d' },
+        ];
+
+        const hasScores = components.some(c => ex[c.key] !== undefined && ex[c.key] > 0);
+
+        const scoreBreakdownHtml = hasScores ? `
+            <div class="rec-why">
+                <span class="rec-why-label"><i class="fas fa-info-circle"></i> Zašto?</span>
+                <div class="rec-why-bars">
+                    ${components.map(c => {
+                        const val = ex[c.key] !== undefined ? ex[c.key] : 0;
+                        const pct = Math.round(val * 100);
+                        return `
+                        <div class="rec-why-row">
+                            <span class="rec-why-name">${c.label}</span>
+                            <div class="rec-why-bar-track">
+                                <div class="rec-why-bar-fill" style="width:${pct}%; background:${c.color};"></div>
+                            </div>
+                            <span class="rec-why-pct">${pct}%</span>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+        ` : '';
+
+        // Genre tags
+        const tags = rec.song.primary_tags && rec.song.primary_tags.length > 0
+            ? `<div class="rec-tags">${rec.song.primary_tags.slice(0, 3).map(
+                t => `<span class="rec-tag">${escapeHtml(t)}</span>`
+              ).join('')}</div>`
+            : '';
+
         return `
             <div class="recommendation-card" data-song-id="${rec.song.id || ''}">
                 <div class="recommendation-card-image-container">
-                    <img src="${rec.song.photo || '/static/images/default-album.png'}" 
-                         alt="${escapeHtml(rec.song.name || 'Unknown')} cover" 
+                    <img src="${rec.song.photo || '/static/images/default-album.png'}"
+                         alt="${escapeHtml(rec.song.name || 'Unknown')} cover"
                          class="recommendation-card-image">
                     <div class="recommendation-card-overlay">
                         <button class="add-recommendation-btn" title="Dodaj u plejlistu">
@@ -472,33 +510,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="recommendation-card-content">
                     <h4 class="recommendation-card-title">${escapeHtml(rec.song.name || 'Unknown')}</h4>
                     <p class="recommendation-card-artist">${escapeHtml(rec.song.artist || 'Unknown Artist')}</p>
                     <p class="recommendation-card-album">${escapeHtml(rec.song.album || 'Unknown Album')}</p>
-                    
+
+                    ${tags}
+
                     <div class="recommendation-score">
                         <div class="score-bar">
                             <div class="score-fill" style="width: ${scorePercentage}%"></div>
                         </div>
-                        <span class="score-text">${(rec.score || 0).toFixed(1)}</span>
+                        <span class="score-text">${scorePercentage}%</span>
                     </div>
-                    
-                    <div class="recommendation-explanation">
-                        ${rec.explanation && rec.explanation.content_audio !== undefined ? `
-                        <div class="explanation-item">
-                            <span class="explanation-label">Slični sadržaj:</span>
-                            <span class="explanation-value">${rec.explanation.content_audio.toFixed(1)}</span>
-                        </div>
-                        ` : ''}
-                        ${rec.explanation && rec.explanation.popularity !== undefined ? `
-                        <div class="explanation-item">
-                            <span class="explanation-label">Popularnost:</span>
-                            <span class="explanation-value">${rec.explanation.popularity.toFixed(1)}</span>
-                        </div>
-                        ` : ''}
-                    </div>
+
+                    ${scoreBreakdownHtml}
                 </div>
             </div>
         `;

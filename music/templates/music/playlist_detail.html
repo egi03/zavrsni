@@ -106,23 +106,58 @@
                   </button>
                 </div>
               </div>
-              
+
               <div class="recommendation-card-content">
                 <h4 class="recommendation-card-title">{{ rec.song.name }}</h4>
                 <p class="recommendation-card-artist">{{ rec.song.artist }}</p>
                 <p class="recommendation-card-album">{{ rec.song.album }}</p>
-                
+
+                {% if rec.song.primary_tags %}
+                  <div class="rec-tags">
+                    {% for tag in rec.song.primary_tags %}
+                      <span class="rec-tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
                 <div class="recommendation-score">
                   <div class="score-bar">
-                    <div class="score-fill" style="width: {{ rec.score|floatformat:0|add:0 }}%"></div>
+                    <div class="score-fill" style="width: {% widthratio rec.score 1 100 %}%"></div>
                   </div>
-                  <span class="score-text">{{ rec.score|floatformat:1 }}</span>
+                  <span class="score-text">{% widthratio rec.score 1 100 %}%</span>
                 </div>
-                
-                <div class="recommendation-explanation">
-                  <div class="explanation-item">
-                    <span class="explanation-label">Popularnost:</span>
-                    <span class="explanation-value">{{ rec.explanation.popularity|floatformat:1 }}</span>
+
+                <div class="rec-why">
+                  <span class="rec-why-label"><i class="fas fa-info-circle"></i> Zašto?</span>
+                  <div class="rec-why-bars">
+                    <div class="rec-why-row">
+                      <span class="rec-why-name">Collaborative</span>
+                      <div class="rec-why-bar-track">
+                        <div class="rec-why-bar-fill" style="width:{% widthratio rec.explanation.collaborative 1 100 %}%; background:#7c6af7;"></div>
+                      </div>
+                      <span class="rec-why-pct">{% widthratio rec.explanation.collaborative 1 100 %}%</span>
+                    </div>
+                    <div class="rec-why-row">
+                      <span class="rec-why-name">Tag match</span>
+                      <div class="rec-why-bar-track">
+                        <div class="rec-why-bar-fill" style="width:{% widthratio rec.explanation.content_tags 1 100 %}%; background:#4fc3f7;"></div>
+                      </div>
+                      <span class="rec-why-pct">{% widthratio rec.explanation.content_tags 1 100 %}%</span>
+                    </div>
+                    <div class="rec-why-row">
+                      <span class="rec-why-name">Similarity</span>
+                      <div class="rec-why-bar-track">
+                        <div class="rec-why-bar-fill" style="width:{% widthratio rec.explanation.content_similar 1 100 %}%; background:#81c784;"></div>
+                      </div>
+                      <span class="rec-why-pct">{% widthratio rec.explanation.content_similar 1 100 %}%</span>
+                    </div>
+                    <div class="rec-why-row">
+                      <span class="rec-why-name">Popularity</span>
+                      <div class="rec-why-bar-track">
+                        <div class="rec-why-bar-fill" style="width:{% widthratio rec.explanation.popularity 1 100 %}%; background:#ffb74d;"></div>
+                      </div>
+                      <span class="rec-why-pct">{% widthratio rec.explanation.popularity 1 100 %}%</span>
+                    </div>
                   </div>
                 </div>
               </div>
