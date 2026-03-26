@@ -74,12 +74,17 @@ class HybridRecommendation(models.Model):
     
 
 class RecommendationFeedback(models.Model):
-    """Track user feedback on recommendations"""
+    """Track explicit user feedback signals on hybrid recommendations.
+
+    Written whenever a user acts on a recommendation (adds song, skips, likes, etc.).
+    Used for monitoring recommendation quality and can feed future retraining.
+    """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recommendation = models.ForeignKey(
-        PlaylistRecommendation, 
+        'HybridRecommendation',
         on_delete=models.CASCADE,
-        related_name='feedback'
+        related_name='feedback',
     )
     action = models.CharField(
         max_length=20,
