@@ -4,7 +4,7 @@ import tensorflow as tf
 from django.test import TestCase
 from recommendations.models import PlaylistRecommendation
 from music.models import Playlist, Song
-from recommendations.colaborative_recommender import PlaylistRecommender
+from recommendations.collaborative_recommender import PlaylistRecommender
 from django.conf import settings
 import os
 from accounts.models import User
