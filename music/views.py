@@ -206,6 +206,19 @@ def add_recommended_song(request, playlist_id):
 
         playlist.songs.add(song)
 
+        # Log recommendation feedback so the signal is available for future retraining
+        try:
+            from recommendations.models import HybridRecommendation, RecommendationFeedback
+            rec = HybridRecommendation.objects.filter(playlist=playlist, song=song).first()
+            if rec:
+                RecommendationFeedback.objects.get_or_create(
+                    user=request.user,
+                    recommendation=rec,
+                    action='added',
+                )
+        except Exception as feedback_err:
+            logger.warning("Failed to log recommendation feedback: %s", feedback_err)
+
         # Clear recommendations cache to refresh after adding
         for strategy in ['balanced', 'discovery', 'popular']:
             cache_key = f'playlist_recommendations_{playlist.id}_{strategy}'
