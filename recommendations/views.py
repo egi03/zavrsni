@@ -127,9 +127,9 @@ def record_recommendation_feedback(request, recommendation_id):
 
 
 def _get_similar_songs_in_playlist(playlist, target_song):
-    from .content_recommender import ContentBasedRecommender
-    
-    recommender = ContentBasedRecommender()
+    from .content_recommender import LastFMContentRecommender
+
+    recommender = LastFMContentRecommender()
     target_features = recommender.get_song_features(target_song)
     
     if not target_features:
