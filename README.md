@@ -107,7 +107,9 @@ zavrsni/
 ├── static/                 # CSS + JS (recommendations.js, song-search.js, ...)
 ├── templates/              # Global templates (base.html, index.html)
 └── docs/
-    └── ML_PIPELINE.md      # Detailed ML architecture documentation
+    ├── ML_PIPELINE.md      # ML architecture, training, evaluation
+    ├── ARCHITECTURE.md     # System design, request lifecycle, caching
+    └── API.md              # Full endpoint reference with request/response examples
 ```
 
 ---
@@ -207,10 +209,11 @@ make evaluate   # run offline evaluation
 ```bash
 # Run all tests
 make test
-# or: pytest --tb=short -q
+# or: python manage.py test recommendations.tests lastfm.tests spotify.tests social.tests music.tests
 
 # With coverage report
-pytest --cov=. --cov-report=term-missing
+coverage run manage.py test recommendations.tests lastfm.tests spotify.tests social.tests music.tests
+coverage report
 ```
 
 **135 tests across all apps**, covering:
@@ -227,21 +230,28 @@ All external APIs (Spotify, Last.fm) are mocked — no network calls in tests.
 
 ---
 
+## Documentation
+
+| Document | Contents |
+|----------|----------|
+| [docs/ML_PIPELINE.md](docs/ML_PIPELINE.md) | Model architecture, training, evaluation metrics, data flow, design decisions |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | App layout, request lifecycles, data models, caching strategy, settings reference |
+| [docs/API.md](docs/API.md) | Full endpoint reference — all apps, request bodies, response shapes with example JSON |
+
 ## Key API Endpoints
+
+Full reference in [docs/API.md](docs/API.md). Selected endpoints:
 
 | Method | URL | Description |
 |--------|-----|-------------|
-| `GET` | `/playlists/` | List user playlists |
-| `POST` | `/playlists/create/` | Create playlist |
-| `GET` | `/playlists/<id>/` | Playlist detail + recommendations |
-| `POST` | `/playlists/<id>/recommendations/refresh/` | Force-refresh recommendations |
-| `POST` | `/playlists/<id>/recommendations/add/` | Add recommended song to playlist |
-| `GET` | `/music/search/?query=` | Search Spotify (JSON) |
-| `POST` | `/playlists/<id>/add/` | Add song to playlist (AJAX) |
-| `GET` | `/social/feed/` | Activity feed |
-| `POST` | `/social/follow/<username>/` | Follow/unfollow user |
-| `GET` | `/social/messages/` | List conversations |
-| `POST` | `/social/messages/send/` | Send message |
+| `GET` | `/playlists/<id>/` | Playlist detail with embedded recommendations |
+| `POST` | `/playlists/<id>/recommendations/refresh/` | Force-refresh recommendations (returns JSON) |
+| `POST` | `/playlists/<id>/add/` | Add song by Spotify ID — creates Song record if needed |
+| `GET` | `/music/search/?query=` | Search Spotify, returns track array |
+| `GET` | `/recommendations/playlist/<id>/song/<id>/explanation/` | Per-song score breakdown |
+| `POST` | `/social/follow/user/<username>/` | Toggle follow, returns new follower count |
+| `POST` | `/social/messages/send/` | Send message, supports shared playlist/song |
+| `GET` | `/social/messages/poll/<id>/` | Poll for new messages since last_message_id |
 
 ---
 
