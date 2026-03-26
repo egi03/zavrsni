@@ -210,11 +210,14 @@ def conversation_view(request, conversation_id):
 @login_required
 @require_POST
 def send_message(request):
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
     content = data.get('content', '').strip()
     conversation_id = data.get('conversation_id')
     recipient_username = data.get('recipient')
-    
+
     if not content:
         return JsonResponse({'error': 'Poruka ne moze biti prazna'}, status=400) 
     
@@ -286,7 +289,10 @@ def add_comment(request, playlist_id):
     if not playlist.is_public and playlist.user != request.user:
         return JsonResponse({'error': 'Ne moze se komentirati privatne playliste'}, status=403)
     
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
     content = data.get('content', '').strip()
     parent_id = data.get('parent_id')
     
