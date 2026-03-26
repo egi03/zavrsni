@@ -1,4 +1,4 @@
-.PHONY: run test lint migrate seed shell clean
+.PHONY: run test lint migrate seed shell clean train train-eval evaluate enrich
 
 # ── Development ──────────────────────────────────────────────────────────────
 
@@ -37,6 +37,12 @@ format:
 
 train:
 	python manage.py train_recommendations
+
+train-eval:
+	python manage.py evaluate_model --retrain
+
+evaluate:
+	python manage.py evaluate_model
 
 enrich:
 	python manage.py enrich_songs_lastfm
