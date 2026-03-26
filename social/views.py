@@ -124,7 +124,7 @@ def follow_playlist(request, playlist_id):
         following = True
         
         if playlist.user != request.user:
-            Notification.create(
+            Notification.objects.create(
                 recipient=playlist.user,
                 sender=request.user,
                 notification_type='playlist_follow',
