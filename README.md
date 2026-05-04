@@ -6,7 +6,6 @@ A Django-based music platform with a **hybrid ML recommendation engine** that co
 [![Django](https://img.shields.io/badge/Django-5.1.6-green?logo=django)](https://www.djangoproject.com/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange?logo=tensorflow)](https://www.tensorflow.org/)
 [![Tests](https://img.shields.io/badge/tests-135%20passing-brightgreen)](#testing)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue?logo=github-actions)](../../actions)
 
 ---
 
